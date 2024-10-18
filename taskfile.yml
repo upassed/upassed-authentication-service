@@ -4,7 +4,7 @@ tasks:
     run-local:
         desc: "Run service on a local machine"
         cmds:
-            - go run ./cmd/main.go --config ./config/local.yml
+            - go run ./cmd/main.go
     test:
         desc: "Run all rests"
         cmds:
