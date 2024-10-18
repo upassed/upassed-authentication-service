@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -8,6 +9,8 @@ import (
 
 	"github.com/upassed/upassed-authentication-service/internal/config"
 	"github.com/upassed/upassed-authentication-service/internal/middleware"
+	"github.com/upassed/upassed-authentication-service/internal/server/authentication"
+	business "github.com/upassed/upassed-authentication-service/internal/service/model"
 	"google.golang.org/grpc"
 )
 
@@ -23,8 +26,13 @@ type AppServer struct {
 }
 
 type AppServerCreateParams struct {
-	Config *config.Config
-	Log    *slog.Logger
+	Config                *config.Config
+	Log                   *slog.Logger
+	AuthenticationService authenticationService
+}
+
+type authenticationService interface {
+	CreateCredentials(context.Context, business.Credentials) (business.CreateCredentialsResponse, error)
 }
 
 func New(params AppServerCreateParams) *AppServer {
@@ -36,6 +44,7 @@ func New(params AppServerCreateParams) *AppServer {
 		),
 	)
 
+	authentication.Register(server, params.AuthenticationService)
 	return &AppServer{
 		config: params.Config,
 		log:    params.Log,

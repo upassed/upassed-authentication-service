@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package api;
+
+import "validate/validate.proto";
+
+option go_package = "upassed.account.v1;client";
+
+service Authentication {
+    rpc CreateCredentials(CredentialsCreateRequest) returns (CredentialsCreateResponse);
+}
+
+message CredentialsCreateRequest {
+    string username = 1 [(validate.rules).string = {min_len: 5, max_len: 20}];
+    string password = 2 [(validate.rules).string = {min_len: 5, max_len: 50}];
+}
+
+message CredentialsCreateResponse {
+    string credentials_id = 1;
+}
