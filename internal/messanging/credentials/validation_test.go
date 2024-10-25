@@ -1,4 +1,4 @@
-package credentials__test
+package credentials_test
 
 import (
 	"github.com/brianvoe/gofakeit/v7"

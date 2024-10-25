@@ -1,4 +1,5 @@
 env: "local"
+application_name: upassed-account-service
 storage:
     host: ${POSTGRES_HOST}
     port: ${POSTGRES_PORT}
@@ -11,3 +12,21 @@ grpc_server:
 migrations:
     migrations_path: ${MIGRATIONS_PATH}
     migrations_table_name: ${MIGRATIONS_TABLE_NAME}
+timeouts:
+    endpoint_execution_timeout_ms: ${ENDPOINT_EXECUTION_TIMEOUT_MS}
+tracing:
+    host: ${JAEGER_HOST}
+    port: ${JAEGER_PORT}
+    credentials_tracer_name: ${CREDENTIALS_TRACER_NAME}
+rabbit:
+    user: ${RABBIT_USER}
+    password: ${RABBIT_PASSWORD}
+    host: ${RABBIT_HOST}
+    port: ${RABBIT_PORT}
+    exchange:
+        name: ${RABBIT_EXCHANGE_NAME}
+        type: ${RABBIT_EXCHANGE_TYPE}
+    queues:
+        credentials_create:
+            name: ${RABBIT_CREDENTIALS_CREATE_QUEUE_NAME}
+            routing_key: ${RABBIT_CREDENTIALS_CREATE_QUEUE_ROUTING_KEY}

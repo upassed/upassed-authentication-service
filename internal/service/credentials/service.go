@@ -10,7 +10,7 @@ import (
 )
 
 type Service interface {
-	CreateCredentials(context.Context, business.Credentials) (business.CreateCredentialsResponse, error)
+	Create(context.Context, business.Credentials) (business.CreateCredentialsResponse, error)
 }
 
 type credentialsServiceImpl struct {
@@ -20,7 +20,8 @@ type credentialsServiceImpl struct {
 }
 
 type authenticationRepository interface {
-	SaveCredentials(context.Context, domain.Credentials) error
+	CheckDuplicatesExists(ctx context.Context, username string) (bool, error)
+	Save(context.Context, domain.Credentials) error
 }
 
 func New(cfg *config.Config, log *slog.Logger, repository authenticationRepository) Service {
