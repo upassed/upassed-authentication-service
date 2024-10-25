@@ -6,17 +6,18 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
+	"reflect"
+	"runtime"
 
 	"github.com/upassed/upassed-authentication-service/internal/config"
 	"github.com/upassed/upassed-authentication-service/internal/middleware"
-	"github.com/upassed/upassed-authentication-service/internal/server/authentication"
 	business "github.com/upassed/upassed-authentication-service/internal/service/model"
 	"google.golang.org/grpc"
 )
 
 var (
-	ErroStartingTcpConnection error = errors.New("unable to start tcp connection")
-	ErrStartingServer         error = errors.New("unable to start gRPC server")
+	errStartingTcpConnection = errors.New("unable to start tcp connection")
+	errStartingServer        = errors.New("unable to start gRPC server")
 )
 
 type AppServer struct {
@@ -44,7 +45,6 @@ func New(params AppServerCreateParams) *AppServer {
 		),
 	)
 
-	authentication.Register(server, params.AuthenticationService)
 	return &AppServer{
 		config: params.Config,
 		log:    params.Log,
@@ -53,7 +53,7 @@ func New(params AppServerCreateParams) *AppServer {
 }
 
 func (server *AppServer) Run() error {
-	const op = "server.Run()"
+	op := runtime.FuncForPC(reflect.ValueOf(server.Run).Pointer()).Name()
 
 	log := server.log.With(
 		slog.String("op", op),
@@ -61,19 +61,19 @@ func (server *AppServer) Run() error {
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", server.config.GrpcServer.Port))
 	if err != nil {
-		return fmt.Errorf("%s -> %w; %w", op, ErroStartingTcpConnection, err)
+		return fmt.Errorf("%s -> %w; %w", op, errStartingTcpConnection, err)
 	}
 
 	log.Info("gRPC server is running", slog.String("address", listener.Addr().String()))
 	if err := server.server.Serve(listener); err != nil {
-		return fmt.Errorf("%s -> %w; %w", op, ErrStartingServer, err)
+		return fmt.Errorf("%s -> %w; %w", op, errStartingServer, err)
 	}
 
 	return nil
 }
 
 func (server *AppServer) GracefulStop() {
-	const op = "server.GracefulStop()"
+	op := runtime.FuncForPC(reflect.ValueOf(server.GracefulStop).Pointer()).Name()
 
 	log := server.log.With(
 		slog.String("op", op),
