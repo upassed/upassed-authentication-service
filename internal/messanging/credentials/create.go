@@ -30,12 +30,15 @@ func (client *rabbitClient) CreateQueueConsumer(log *slog.Logger) func(d rabbitm
 		request, err := ConvertToCredentialsCreateRequest(delivery.Body)
 		if err != nil {
 			log.Error("error parsing message body to json", logging.Error(err))
+			span.SetAttributes(attribute.String("err", err.Error()))
 			return rabbitmq.NackDiscard
 		}
 
+		span.SetAttributes(attribute.String("username", request.Username))
 		log.Info("validating the credentials create request")
 		if err := request.Validate(); err != nil {
 			log.Error("request is invalid", logging.Error(err))
+			span.SetAttributes(attribute.String("err", err.Error()))
 			return rabbitmq.NackDiscard
 		}
 
@@ -43,6 +46,7 @@ func (client *rabbitClient) CreateQueueConsumer(log *slog.Logger) func(d rabbitm
 		response, err := client.service.Create(spanContext, ConvertToCredentials(request))
 		if err != nil {
 			log.Error("error while creating credentials", logging.Error(err))
+			span.SetAttributes(attribute.String("err", err.Error()))
 			return rabbitmq.NackDiscard
 		}
 
