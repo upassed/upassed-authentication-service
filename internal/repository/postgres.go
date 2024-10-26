@@ -2,7 +2,6 @@ package repository
 
 import (
 	"errors"
-	"fmt"
 	"github.com/upassed/upassed-authentication-service/internal/config"
 	logging "github.com/upassed/upassed-authentication-service/internal/logger"
 	"github.com/upassed/upassed-authentication-service/internal/migration"
@@ -10,8 +9,6 @@ import (
 	"gorm.io/gorm"
 	gormLogger "gorm.io/gorm/logger"
 	"log/slog"
-	"reflect"
-	"runtime"
 )
 
 var (
@@ -21,11 +18,7 @@ var (
 )
 
 func OpenGormDbConnection(cfg *config.Config, log *slog.Logger) (*gorm.DB, error) {
-	op := runtime.FuncForPC(reflect.ValueOf(OpenGormDbConnection).Pointer()).Name()
-
-	log = log.With(
-		slog.String("op", op),
-	)
+	log = logging.Wrap(log, logging.WithOp(OpenGormDbConnection))
 
 	log.Info("started connecting to postgres database")
 	db, err := gorm.Open(postgres.New(postgres.Config{
@@ -37,18 +30,21 @@ func OpenGormDbConnection(cfg *config.Config, log *slog.Logger) (*gorm.DB, error
 
 	if err != nil {
 		log.Error("error while opening connection to a database", logging.Error(err))
-		return nil, fmt.Errorf("%s - %w", op, errOpeningDbConnection)
+		return nil, errOpeningDbConnection
 	}
 
+	log.Info("pinging the postgres database")
 	if postgresDB, err := db.DB(); err != nil || postgresDB.Ping() != nil {
 		log.Error("error while pinging a database")
-		return nil, fmt.Errorf("%s - %w", op, errPingingDatabase)
+		return nil, errPingingDatabase
 	}
 
 	log.Info("database connection established successfully")
+	log.Info("running migrations")
 	if err := migration.RunMigrations(cfg, log); err != nil {
 		return nil, errRunningMigrationScripts
 	}
 
+	log.Info("migrations ran successfully")
 	return db, nil
 }

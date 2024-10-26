@@ -11,7 +11,6 @@ import (
 
 func TestConvertToDomainCredentials_HappyPath(t *testing.T) {
 	credentialsToConvert := util.RandomBusinessCredentials()
-
 	convertedCredentials, err := credentials.ConvertToDomainCredentials(credentialsToConvert)
 	require.Nil(t, err)
 

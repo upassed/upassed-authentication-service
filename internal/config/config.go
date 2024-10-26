@@ -77,7 +77,7 @@ type Rabbit struct {
 }
 
 type Queues struct {
-	CredentialsCreate CredentialsCreateQueue `yaml:"student_create" env-required:"true"`
+	CredentialsCreate CredentialsCreateQueue `yaml:"credentials_create" env-required:"true"`
 }
 
 type RabbitExchange struct {

@@ -3,28 +3,22 @@ package migration
 import (
 	"errors"
 	"fmt"
+	"github.com/golang-migrate/migrate/v4"
 	"github.com/upassed/upassed-authentication-service/internal/config"
 	logging "github.com/upassed/upassed-authentication-service/internal/logger"
 	"log/slog"
-	"reflect"
-	"runtime"
-
-	"github.com/golang-migrate/migrate/v4"
 
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 func RunMigrations(cfg *config.Config, log *slog.Logger) error {
-	op := runtime.FuncForPC(reflect.ValueOf(RunMigrations).Pointer()).Name()
+	log = logging.Wrap(log, logging.WithOp(RunMigrations))
 
+	log.Info("creating a new instance of migrator")
 	migrator, err := migrate.New(
 		fmt.Sprintf("file://%s", cfg.Migration.MigrationsPath),
 		cfg.GetMigrationPostgresConnectionString(),
-	)
-
-	log = log.With(
-		slog.String("op", op),
 	)
 
 	if err != nil {

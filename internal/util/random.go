@@ -7,15 +7,15 @@ import (
 	business "github.com/upassed/upassed-authentication-service/internal/service/model"
 )
 
-func RandomEvenCredentialsCreateRequest() event.CredentialsCreateRequest {
-	return event.CredentialsCreateRequest{
+func RandomEvenCredentialsCreateRequest() *event.CredentialsCreateRequest {
+	return &event.CredentialsCreateRequest{
 		Username: gofakeit.Username(),
 		Password: gofakeit.Password(true, true, true, true, true, 24),
 	}
 }
 
-func RandomBusinessCredentials() business.Credentials {
-	return business.Credentials{
+func RandomBusinessCredentials() *business.Credentials {
+	return &business.Credentials{
 		ID:       uuid.New(),
 		Username: gofakeit.Username(),
 		Password: gofakeit.Password(true, true, true, true, true, 24),

@@ -3,15 +3,13 @@ package server
 import (
 	"errors"
 	"fmt"
+	"github.com/upassed/upassed-authentication-service/internal/config"
+	logging "github.com/upassed/upassed-authentication-service/internal/logger"
+	"github.com/upassed/upassed-authentication-service/internal/middleware"
 	"github.com/upassed/upassed-authentication-service/internal/service/credentials"
+	"google.golang.org/grpc"
 	"log/slog"
 	"net"
-	"reflect"
-	"runtime"
-
-	"github.com/upassed/upassed-authentication-service/internal/config"
-	"github.com/upassed/upassed-authentication-service/internal/middleware"
-	"google.golang.org/grpc"
 )
 
 var (
@@ -48,31 +46,29 @@ func New(params AppServerCreateParams) *AppServer {
 }
 
 func (server *AppServer) Run() error {
-	op := runtime.FuncForPC(reflect.ValueOf(server.Run).Pointer()).Name()
-
-	log := server.log.With(
-		slog.String("op", op),
+	log := logging.Wrap(server.log,
+		logging.WithOp(server.Run),
+		logging.WithAny("port", server.config.GrpcServer.Port),
 	)
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", server.config.GrpcServer.Port))
 	if err != nil {
-		return fmt.Errorf("%s -> %w; %w", op, errStartingTcpConnection, err)
+		log.Error("error while starting tcp connection", logging.Error(err))
+		return errStartingTcpConnection
 	}
 
 	log.Info("gRPC server is running", slog.String("address", listener.Addr().String()))
 	if err := server.server.Serve(listener); err != nil {
-		return fmt.Errorf("%s -> %w; %w", op, errStartingServer, err)
+		log.Error("error while starting tcp server", logging.Error(err))
+		return errStartingServer
 	}
 
+	log.Info("tcp server is now running")
 	return nil
 }
 
 func (server *AppServer) GracefulStop() {
-	op := runtime.FuncForPC(reflect.ValueOf(server.GracefulStop).Pointer()).Name()
-
-	log := server.log.With(
-		slog.String("op", op),
-	)
+	log := logging.Wrap(server.log, logging.WithOp(server.GracefulStop))
 
 	log.Info("gracefully stopping gRPC server...")
 	server.server.GracefulStop()

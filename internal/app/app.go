@@ -1,18 +1,16 @@
 package app
 
 import (
+	"github.com/upassed/upassed-authentication-service/internal/config"
+	logging "github.com/upassed/upassed-authentication-service/internal/logger"
 	"github.com/upassed/upassed-authentication-service/internal/messanging"
 	credentialsRabbit "github.com/upassed/upassed-authentication-service/internal/messanging/credentials"
 	"github.com/upassed/upassed-authentication-service/internal/repository"
 	credentialsRepo "github.com/upassed/upassed-authentication-service/internal/repository/credentials"
+	"github.com/upassed/upassed-authentication-service/internal/server"
 	"github.com/upassed/upassed-authentication-service/internal/service/credentials"
 	"github.com/wagslane/go-rabbitmq"
 	"log/slog"
-	"reflect"
-	"runtime"
-
-	"github.com/upassed/upassed-authentication-service/internal/config"
-	"github.com/upassed/upassed-authentication-service/internal/server"
 )
 
 type App struct {
@@ -21,11 +19,8 @@ type App struct {
 }
 
 func New(config *config.Config, log *slog.Logger) (*App, error) {
-	op := runtime.FuncForPC(reflect.ValueOf(New).Pointer()).Name()
-
-	log = log.With(
-		slog.String("op", op),
-	)
+	log = logging.Wrap(log, logging.WithOp(New))
+	log.Info("started initializing application")
 
 	db, err := repository.OpenGormDbConnection(config, log)
 	if err != nil {

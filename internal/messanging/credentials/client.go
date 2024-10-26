@@ -6,8 +6,6 @@ import (
 	"github.com/upassed/upassed-authentication-service/internal/service/credentials"
 	"github.com/wagslane/go-rabbitmq"
 	"log/slog"
-	"reflect"
-	"runtime"
 )
 
 type rabbitClient struct {
@@ -18,11 +16,7 @@ type rabbitClient struct {
 }
 
 func Initialize(service credentials.Service, rabbitConnection *rabbitmq.Conn, cfg *config.Config, log *slog.Logger) {
-	op := runtime.FuncForPC(reflect.ValueOf(Initialize).Pointer()).Name()
-
-	log = log.With(
-		slog.String("op", op),
-	)
+	log = logging.Wrap(log, logging.WithOp(Initialize))
 
 	client := &rabbitClient{
 		service:          service,

@@ -4,9 +4,6 @@ import (
 	"errors"
 	logging "github.com/upassed/upassed-authentication-service/internal/logger"
 	"github.com/wagslane/go-rabbitmq"
-	"log/slog"
-	"reflect"
-	"runtime"
 )
 
 var (
@@ -15,11 +12,7 @@ var (
 )
 
 func InitializeCreateQueueConsumer(client *rabbitClient) error {
-	op := runtime.FuncForPC(reflect.ValueOf(InitializeCreateQueueConsumer).Pointer()).Name()
-
-	log := client.log.With(
-		slog.String("op", op),
-	)
+	log := logging.Wrap(client.log, logging.WithOp(InitializeCreateQueueConsumer))
 
 	log.Info("started creating credentials create queue consumer")
 	credentialsCreateQueueConsumer, err := rabbitmq.NewConsumer(
@@ -41,5 +34,6 @@ func InitializeCreateQueueConsumer(client *rabbitClient) error {
 		return errRunningCredentialsCreateQueueConsumer
 	}
 
+	log.Info("credentials queue consumer initialized successfully")
 	return nil
 }

@@ -13,6 +13,9 @@ var (
 )
 
 func OpenRabbitConnection(cfg *config.Config, log *slog.Logger) (*rabbitmq.Conn, error) {
+	log = logging.Wrap(log, logging.WithOp(OpenRabbitConnection))
+
+	log.Info("creating new rabbitmq connection")
 	rabbitConnection, err := rabbitmq.NewConn(
 		cfg.GetRabbitConnectionString(),
 		rabbitmq.WithConnectionOptionsLogging,
@@ -23,5 +26,6 @@ func OpenRabbitConnection(cfg *config.Config, log *slog.Logger) (*rabbitmq.Conn,
 		return nil, errOpeningRabbitConnection
 	}
 
+	log.Info("rabbit connection established successfully")
 	return rabbitConnection, nil
 }

@@ -6,13 +6,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func ConvertToDomainCredentials(credentials business.Credentials) (domain.Credentials, error) {
+func ConvertToDomainCredentials(credentials *business.Credentials) (*domain.Credentials, error) {
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(credentials.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return domain.Credentials{}, err
+		return nil, err
 	}
 
-	return domain.Credentials{
+	return &domain.Credentials{
 		ID:           credentials.ID,
 		Username:     credentials.Username,
 		PasswordHash: passwordHash,

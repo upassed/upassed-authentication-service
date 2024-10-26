@@ -5,6 +5,7 @@ go 1.23.0
 require (
 	github.com/brianvoe/gofakeit/v7 v7.0.4
 	github.com/go-playground/validator/v10 v10.22.1
+	github.com/golang-migrate/migrate/v4 v4.18.1
 	github.com/google/uuid v1.6.0
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/joho/godotenv v1.5.1
@@ -17,6 +18,8 @@ require (
 	golang.org/x/sync v0.8.0
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241007155032-5fefd90f89a9
 	google.golang.org/grpc v1.67.1
+	gorm.io/driver/postgres v1.5.9
+	gorm.io/gorm v1.25.12
 )
 
 require (
@@ -28,7 +31,6 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/golang-migrate/migrate/v4 v4.18.1 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.22.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
@@ -42,6 +44,7 @@ require (
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rabbitmq/amqp091-go v1.10.0 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.31.0 // indirect
 	go.opentelemetry.io/otel/metric v1.31.0 // indirect
 	go.opentelemetry.io/otel/trace v1.31.0 // indirect
@@ -53,7 +56,5 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20241007155032-5fefd90f89a9 // indirect
 	google.golang.org/protobuf v1.35.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	gorm.io/driver/postgres v1.5.9 // indirect
-	gorm.io/gorm v1.25.12 // indirect
 	olympos.io/encoding/edn v0.0.0-20201019073823-d3554ca0b0a3 // indirect
 )

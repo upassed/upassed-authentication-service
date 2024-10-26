@@ -9,20 +9,16 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"log/slog"
-	"reflect"
-	"runtime"
 )
 
 func (client *rabbitClient) CreateQueueConsumer(log *slog.Logger) func(d rabbitmq.Delivery) rabbitmq.Action {
-	op := runtime.FuncForPC(reflect.ValueOf(client.CreateQueueConsumer).Pointer()).Name()
-
 	return func(delivery rabbitmq.Delivery) rabbitmq.Action {
 		requestID := uuid.New().String()
 		ctx := context.WithValue(context.Background(), middleware.RequestIDKey, requestID)
 
-		log = log.With(
-			slog.String("op", op),
-			slog.String(string(middleware.RequestIDKey), middleware.GetRequestIDFromContext(ctx)),
+		log = logging.Wrap(log,
+			logging.WithOp(client.CreateQueueConsumer),
+			logging.WithCtx(ctx),
 		)
 
 		log.Info("consumed credentials create message", slog.String("messageBody", string(delivery.Body)))
@@ -30,17 +26,20 @@ func (client *rabbitClient) CreateQueueConsumer(log *slog.Logger) func(d rabbitm
 		span.SetAttributes(attribute.String(string(middleware.RequestIDKey), middleware.GetRequestIDFromContext(ctx)))
 		defer span.End()
 
+		log.Info("converting message body to credentials create request")
 		request, err := ConvertToCredentialsCreateRequest(delivery.Body)
 		if err != nil {
 			log.Error("error parsing message body to json", logging.Error(err))
 			return rabbitmq.NackDiscard
 		}
 
+		log.Info("validating the credentials create request")
 		if err := request.Validate(); err != nil {
 			log.Error("request is invalid", logging.Error(err))
 			return rabbitmq.NackDiscard
 		}
 
+		log.Info("creating credentials")
 		response, err := client.service.Create(spanContext, ConvertToCredentials(request))
 		if err != nil {
 			log.Error("error while creating credentials", logging.Error(err))

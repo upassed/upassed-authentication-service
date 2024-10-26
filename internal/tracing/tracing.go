@@ -12,18 +12,14 @@ import (
 	"log/slog"
 	"net"
 	"os"
-	"reflect"
-	"runtime"
 )
 
 func InitTracer(cfg *config.Config, log *slog.Logger) (func(), error) {
-	op := runtime.FuncForPC(reflect.ValueOf(InitTracer).Pointer()).Name()
-
-	log = log.With(
-		slog.String("op", op),
-	)
+	log = logging.Wrap(log, logging.WithOp(InitTracer))
 
 	ctx := context.Background()
+
+	log.Info("started creating new instance of trace exporter")
 	exporter, err := otlptracegrpc.New(ctx,
 		otlptracegrpc.WithInsecure(),
 		otlptracegrpc.WithEndpoint(net.JoinHostPort(cfg.Tracing.Host, cfg.Tracing.Port)),
@@ -34,6 +30,7 @@ func InitTracer(cfg *config.Config, log *slog.Logger) (func(), error) {
 		return nil, err
 	}
 
+	log.Info("started create new resource")
 	res, err := resource.New(ctx,
 		resource.WithAttributes(
 			semconv.ServiceNameKey.String(cfg.ApplicationName),
@@ -46,13 +43,14 @@ func InitTracer(cfg *config.Config, log *slog.Logger) (func(), error) {
 		return nil, err
 	}
 
+	log.Info("creating new trace provider instance")
 	tp := trace.NewTracerProvider(
 		trace.WithBatcher(exporter),
 		trace.WithResource(res),
 	)
 
+	log.Info("tracing initialization was successful")
 	otel.SetTracerProvider(tp)
-
 	return func() {
 		if err := tp.Shutdown(ctx); err != nil {
 			log.Error("unable to shutdown tracing provider", logging.Error(err))
