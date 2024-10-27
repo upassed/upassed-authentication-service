@@ -76,3 +76,99 @@ func TestCreate_ErrorCheckingDuplicateExists(t *testing.T) {
 	assert.Equal(t, expectedRepositoryError.Error(), convertedError.Message())
 	assert.Equal(t, codes.Internal, convertedError.Code())
 }
+
+func TestCreate_DuplicateExists(t *testing.T) {
+	credentialsRepository := new(mockCredentialsRepository)
+
+	credentialsToCreate := util.RandomBusinessCredentials()
+	credentialsRepository.On(
+		"CheckDuplicatesExists",
+		mock.Anything,
+		credentialsToCreate.Username,
+	).Return(true, nil)
+
+	service := credentials.New(cfg, logging.New(config.EnvTesting), credentialsRepository)
+	_, err := service.Create(context.Background(), credentialsToCreate)
+	require.NotNil(t, err)
+
+	convertedError := status.Convert(err)
+	assert.Equal(t, "credentials duplicate found", convertedError.Message())
+	assert.Equal(t, codes.AlreadyExists, convertedError.Code())
+}
+
+func TestCreate_ErrorSavingCredentialsToDatabase(t *testing.T) {
+	credentialsRepository := new(mockCredentialsRepository)
+
+	credentialsToCreate := util.RandomBusinessCredentials()
+	credentialsRepository.On(
+		"CheckDuplicatesExists",
+		mock.Anything,
+		credentialsToCreate.Username,
+	).Return(false, nil)
+
+	expectedRepositoryError := errors.New("err while saving credentials")
+	credentialsRepository.On(
+		"Save",
+		mock.Anything,
+		mock.Anything,
+	).Return(expectedRepositoryError)
+
+	service := credentials.New(cfg, logging.New(config.EnvTesting), credentialsRepository)
+	_, err := service.Create(context.Background(), credentialsToCreate)
+	require.NotNil(t, err)
+
+	convertedError := status.Convert(err)
+	assert.Equal(t, expectedRepositoryError.Error(), convertedError.Message())
+}
+
+func TestCreate_DeadlineExceeded(t *testing.T) {
+	oldTimeout := cfg.Timeouts.EndpointExecutionTimeoutMS
+	cfg.Timeouts.EndpointExecutionTimeoutMS = "1"
+
+	credentialsRepository := new(mockCredentialsRepository)
+
+	credentialsToCreate := util.RandomBusinessCredentials()
+	credentialsRepository.On(
+		"CheckDuplicatesExists",
+		mock.Anything,
+		credentialsToCreate.Username,
+	).Return(false, nil)
+
+	credentialsRepository.On(
+		"Save",
+		mock.Anything,
+		mock.Anything,
+	).Return(nil)
+
+	service := credentials.New(cfg, logging.New(config.EnvTesting), credentialsRepository)
+	_, err := service.Create(context.Background(), credentialsToCreate)
+	require.NotNil(t, err)
+
+	convertedError := status.Convert(err)
+	assert.Equal(t, credentials.ErrCreateCredentialsDeadlineExceeded.Error(), convertedError.Message())
+
+	cfg.Timeouts.EndpointExecutionTimeoutMS = oldTimeout
+}
+
+func TestCreate_HappyPath(t *testing.T) {
+	credentialsRepository := new(mockCredentialsRepository)
+
+	credentialsToCreate := util.RandomBusinessCredentials()
+	credentialsRepository.On(
+		"CheckDuplicatesExists",
+		mock.Anything,
+		credentialsToCreate.Username,
+	).Return(false, nil)
+
+	credentialsRepository.On(
+		"Save",
+		mock.Anything,
+		mock.Anything,
+	).Return(nil)
+
+	service := credentials.New(cfg, logging.New(config.EnvTesting), credentialsRepository)
+	response, err := service.Create(context.Background(), credentialsToCreate)
+	require.Nil(t, err)
+
+	assert.Equal(t, credentialsToCreate.ID, response.CreatedCredentialsID)
+}

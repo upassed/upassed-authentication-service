@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	errCreateCredentialsDeadlineExceeded = errors.New("create credentials deadline exceeded")
+	ErrCreateCredentialsDeadlineExceeded = errors.New("create credentials deadline exceeded")
 )
 
 func (service *credentialsServiceImpl) Create(ctx context.Context, credentials *business.Credentials) (*business.CreateCredentialsResponse, error) {
@@ -70,7 +70,7 @@ func (service *credentialsServiceImpl) Create(ctx context.Context, credentials *
 		if errors.Is(err, context.DeadlineExceeded) {
 			log.Error("credentials creating deadline exceeded")
 			span.SetAttributes(attribute.String("err", err.Error()))
-			return nil, handling.Wrap(errCreateCredentialsDeadlineExceeded, handling.WithCode(codes.DeadlineExceeded))
+			return nil, handling.Wrap(ErrCreateCredentialsDeadlineExceeded, handling.WithCode(codes.DeadlineExceeded))
 		}
 
 		log.Error("error while creating credentials", logging.Error(err))
