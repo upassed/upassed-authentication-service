@@ -36,6 +36,7 @@ type Config struct {
 	Migration       MigrationConfig `yaml:"migrations" env-required:"true"`
 	Timeouts        Timeouts        `yaml:"timeouts" env-required:"true"`
 	Tracing         Tracing         `yaml:"tracing" env-required:"true"`
+	Redis           Redis           `yaml:"redis" env-required:"true"`
 	Rabbit          Rabbit          `yaml:"rabbit" env-required:"true"`
 }
 
@@ -65,6 +66,15 @@ type Tracing struct {
 	Host                  string `yaml:"host" env:"JAEGER_HOST" env-required:"true"`
 	Port                  string `yaml:"port" env:"JAEGER_PORT" env-required:"true"`
 	CredentialsTracerName string `yaml:"credentials_tracer_name" env:"CREDENTIALS_TRACER_NAME" env-required:"true"`
+}
+
+type Redis struct {
+	User           string `yaml:"user" env:"REDIS_USER" env-required:"true"`
+	Password       string `yaml:"password" env:"REDIS_PASSWORD" env-required:"true"`
+	Host           string `yaml:"host" env:"REDIS_HOST" env-required:"true"`
+	Port           string `yaml:"port" env:"REDIS_PORT" env-required:"true"`
+	DatabaseNumber string `yaml:"database_number" env:"REDIS_DATABASE_NUMBER" env-required:"true"`
+	EntityTTL      string `yaml:"entity_ttl" env:"REDIS_ENTITY_TTL" env-required:"true"`
 }
 
 type Rabbit struct {
@@ -144,6 +154,17 @@ func (cfg *Config) GetMigrationPostgresConnectionString() string {
 		cfg.Storage.DatabaseName,
 		cfg.Migration.MigrationsTableName,
 	)
+}
+
+func (cfg *Config) GetRedisEntityTTL() time.Duration {
+	op := runtime.FuncForPC(reflect.ValueOf(cfg.GetRedisEntityTTL).Pointer()).Name()
+
+	parsedTTL, err := time.ParseDuration(cfg.Redis.EntityTTL)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("%s, op=%s, err=%s", "unable to parse entity ttl into time.Duration", op, err.Error()))
+	}
+
+	return parsedTTL
 }
 
 func (cfg *Config) GetRabbitConnectionString() string {
