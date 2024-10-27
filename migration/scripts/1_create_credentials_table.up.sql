@@ -1,4 +1,4 @@
-create table if not exists teacher (
+create table if not exists credentials (
     id uuid primary key,
     username varchar not null unique,
     password bytea not null,

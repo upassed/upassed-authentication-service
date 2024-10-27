@@ -27,7 +27,7 @@ func Initialize(service credentials.Service, rabbitConnection *rabbitmq.Conn, cf
 
 	go func() {
 		if err := InitializeCreateQueueConsumer(client); err != nil {
-			log.Error("error while initializing student queue consumer", logging.Error(err))
+			log.Error("error while initializing credentials queue consumer", logging.Error(err))
 			return
 		}
 	}()
