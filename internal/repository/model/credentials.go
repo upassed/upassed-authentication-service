@@ -7,3 +7,7 @@ type Credentials struct {
 	Username     string
 	PasswordHash []byte
 }
+
+func (Credentials) TableName() string {
+	return "credentials"
+}

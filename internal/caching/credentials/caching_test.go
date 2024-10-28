@@ -2,7 +2,7 @@ package credentials_test
 
 import (
 	"context"
-	"github.com/google/uuid"
+	"github.com/brianvoe/gofakeit/v7"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/upassed/upassed-authentication-service/internal/caching"
@@ -72,15 +72,15 @@ func TestSaveGroup_HappyPath(t *testing.T) {
 	err := redisClient.Save(ctx, credentialsToSave)
 	require.Nil(t, err)
 
-	credentialsFromCache, err := redisClient.GetByID(ctx, credentialsToSave.ID)
+	credentialsFromCache, err := redisClient.GetByUsername(ctx, credentialsToSave.Username)
 	require.Nil(t, err)
 
 	assert.Equal(t, *credentialsToSave, *credentialsFromCache)
 }
 
 func TestFindGroupByID_GroupNotFound(t *testing.T) {
-	credentialsID := uuid.New()
-	foundCredentials, err := redisClient.GetByID(context.Background(), credentialsID)
+	credentialsUsername := gofakeit.Username()
+	foundCredentials, err := redisClient.GetByUsername(context.Background(), credentialsUsername)
 	require.NotNil(t, err)
 
 	assert.ErrorIs(t, err, credentials.ErrCredentialsIsNotPresentInCache)

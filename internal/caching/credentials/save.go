@@ -24,7 +24,7 @@ func (client *RedisClient) Save(ctx context.Context, credentials *domain.Credent
 	log := logging.Wrap(client.log,
 		logging.WithOp(client.Save),
 		logging.WithCtx(ctx),
-		logging.WithAny("credentialsID", credentials.ID),
+		logging.WithAny("username", credentials.Username),
 	)
 
 	log.Info("marshalling credentials data to json to save to cache")
@@ -36,7 +36,7 @@ func (client *RedisClient) Save(ctx context.Context, credentials *domain.Credent
 	}
 
 	log.Info("saving credentials data to the cache")
-	if err := client.client.Set(ctx, fmt.Sprintf(keyFormat, credentials.ID.String()), jsonCredentialsData, client.cfg.GetRedisEntityTTL()).Err(); err != nil {
+	if err := client.client.Set(ctx, fmt.Sprintf(keyFormat, credentials.Username), jsonCredentialsData, client.cfg.GetRedisEntityTTL()).Err(); err != nil {
 		log.Error("error while saving credentials data to the cache", logging.Error(err))
 		span.SetAttributes(attribute.String("err", err.Error()))
 		return errSavingCredentialsDataToCache

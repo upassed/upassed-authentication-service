@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/upassed/upassed-authentication-service/internal/caching"
 	"github.com/upassed/upassed-authentication-service/internal/config"
 	logging "github.com/upassed/upassed-authentication-service/internal/logger"
 	"github.com/upassed/upassed-authentication-service/internal/messanging"
@@ -27,12 +28,17 @@ func New(config *config.Config, log *slog.Logger) (*App, error) {
 		return nil, err
 	}
 
+	redis, err := caching.OpenRedisConnection(config, log)
+	if err != nil {
+		return nil, err
+	}
+
 	rabbit, err := messanging.OpenRabbitConnection(config, log)
 	if err != nil {
 		return nil, err
 	}
 
-	credentialsRepository := credentialsRepo.New(db, config, log)
+	credentialsRepository := credentialsRepo.New(db, redis, config, log)
 
 	credentialsService := credentials.New(config, log, credentialsRepository)
 	credentialsRabbit.Initialize(credentialsService, rabbit, config, log)
