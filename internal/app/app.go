@@ -10,6 +10,7 @@ import (
 	credentialsRepo "github.com/upassed/upassed-authentication-service/internal/repository/credentials"
 	"github.com/upassed/upassed-authentication-service/internal/server"
 	"github.com/upassed/upassed-authentication-service/internal/service/credentials"
+	"github.com/upassed/upassed-authentication-service/internal/service/token"
 	"github.com/wagslane/go-rabbitmq"
 	"log/slog"
 )
@@ -44,8 +45,9 @@ func New(config *config.Config, log *slog.Logger) (*App, error) {
 	credentialsRabbit.Initialize(credentialsService, rabbit, config, log)
 
 	appServer := server.New(server.AppServerCreateParams{
-		Config: config,
-		Log:    log,
+		Config:       config,
+		Log:          log,
+		TokenService: token.New(config, log, credentialsRepository),
 	})
 
 	log.Info("app successfully created")

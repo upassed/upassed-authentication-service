@@ -6,7 +6,8 @@ import (
 	"github.com/upassed/upassed-authentication-service/internal/config"
 	logging "github.com/upassed/upassed-authentication-service/internal/logger"
 	"github.com/upassed/upassed-authentication-service/internal/middleware"
-	"github.com/upassed/upassed-authentication-service/internal/service/credentials"
+	"github.com/upassed/upassed-authentication-service/internal/server/token"
+	tokenSvc "github.com/upassed/upassed-authentication-service/internal/service/token"
 	"google.golang.org/grpc"
 	"log/slog"
 	"net"
@@ -24,9 +25,9 @@ type AppServer struct {
 }
 
 type AppServerCreateParams struct {
-	Config                *config.Config
-	Log                   *slog.Logger
-	AuthenticationService credentials.Service
+	Config       *config.Config
+	Log          *slog.Logger
+	TokenService tokenSvc.Service
 }
 
 func New(params AppServerCreateParams) *AppServer {
@@ -38,6 +39,7 @@ func New(params AppServerCreateParams) *AppServer {
 		),
 	)
 
+	token.Register(server, params.Config, params.TokenService)
 	return &AppServer{
 		config: params.Config,
 		log:    params.Log,

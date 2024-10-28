@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package api;
+
+import "validate/validate.proto";
+
+option go_package = "upassed.authentication.v1;client";
+
+service Token {
+  rpc Generate (TokenGenerateRequest) returns (TokenGenerateResponse);
+}
+
+message TokenGenerateRequest {
+  string username = 1 [(validate.rules).string = {
+    pattern:   "^[a-zA-Z][a-zA-Z0-9_]+$",
+  }];
+  string password = 2;
+}
+
+message TokenGenerateResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+}

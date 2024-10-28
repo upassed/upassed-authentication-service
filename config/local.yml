@@ -18,6 +18,7 @@ tracing:
     host: ${JAEGER_HOST}
     port: ${JAEGER_PORT}
     credentials_tracer_name: ${CREDENTIALS_TRACER_NAME}
+    token_tracer_name: ${TOKEN_TRACER_NAME}
 redis:
     user: ${REDIS_USER}
     password: ${REDIS_PASSWORD}

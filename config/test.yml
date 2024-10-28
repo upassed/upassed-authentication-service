@@ -18,6 +18,7 @@ tracing:
     host: localhost
     port: 4317
     credentials_tracer_name: credentials-tracer
+    token_tracer_name: token-tracer
 redis:
     user: default
     password: password

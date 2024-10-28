@@ -6,6 +6,7 @@ import (
 	event "github.com/upassed/upassed-authentication-service/internal/messanging/model"
 	domain "github.com/upassed/upassed-authentication-service/internal/repository/model"
 	business "github.com/upassed/upassed-authentication-service/internal/service/model"
+	"github.com/upassed/upassed-authentication-service/pkg/client"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -31,5 +32,19 @@ func RandomDomainCredentials() *domain.Credentials {
 		ID:           uuid.New(),
 		Username:     gofakeit.Username(),
 		PasswordHash: passwordHash,
+	}
+}
+
+func RandomClientTokenGenerateRequest() *client.TokenGenerateRequest {
+	return &client.TokenGenerateRequest{
+		Username: gofakeit.Username(),
+		Password: gofakeit.Password(true, true, true, true, true, 24),
+	}
+}
+
+func RandomBusinessTokenGenerateResponse() *business.TokenGenerateResponse {
+	return &business.TokenGenerateResponse{
+		AccessToken:  gofakeit.Slogan(),
+		RefreshToken: gofakeit.Slogan(),
 	}
 }

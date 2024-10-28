@@ -66,6 +66,7 @@ type Tracing struct {
 	Host                  string `yaml:"host" env:"JAEGER_HOST" env-required:"true"`
 	Port                  string `yaml:"port" env:"JAEGER_PORT" env-required:"true"`
 	CredentialsTracerName string `yaml:"credentials_tracer_name" env:"CREDENTIALS_TRACER_NAME" env-required:"true"`
+	TokenTracerName       string `yaml:"token_tracer_name" env:"TOKEN_TRACER_NAME" env-required:"true"`
 }
 
 type Redis struct {
