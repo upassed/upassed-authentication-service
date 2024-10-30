@@ -35,6 +35,7 @@ type Config struct {
 	GrpcServer      GrpcServer      `yaml:"grpc_server" env-required:"true"`
 	Migration       MigrationConfig `yaml:"migrations" env-required:"true"`
 	Timeouts        Timeouts        `yaml:"timeouts" env-required:"true"`
+	Jwt             Jwt             `yaml:"jwt" env-required:"true"`
 	Tracing         Tracing         `yaml:"tracing" env-required:"true"`
 	Redis           Redis           `yaml:"redis" env-required:"true"`
 	Rabbit          Rabbit          `yaml:"rabbit" env-required:"true"`
@@ -60,6 +61,12 @@ type MigrationConfig struct {
 
 type Timeouts struct {
 	EndpointExecutionTimeoutMS string `yaml:"endpoint_execution_timeout_ms" env:"ENDPOINT_EXECUTION_TIMEOUT_MS" env-required:"true"`
+}
+
+type Jwt struct {
+	AccessTokenTTL  string `yaml:"access_token_ttl" env:"JWT_ACCESS_TOKEN_TTL" env-required:"true"`
+	RefreshTokenTTL string `yaml:"refresh_token_ttl" env:"JWT_REFRESH_TOKEN_TTL" env-required:"true"`
+	Secret          string `yaml:"secret" env:"JWT_SECRET" env-required:"true"`
 }
 
 type Tracing struct {
@@ -133,6 +140,28 @@ func (cfg *Config) GetEndpointExecutionTimeout() time.Duration {
 	}
 
 	return time.Duration(milliseconds) * time.Millisecond
+}
+
+func (cfg *Config) GetJwtAccessTokenTTL() time.Duration {
+	op := runtime.FuncForPC(reflect.ValueOf(cfg.GetJwtAccessTokenTTL).Pointer()).Name()
+
+	parsedTTL, err := time.ParseDuration(cfg.Jwt.AccessTokenTTL)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("%s, op=%s, err=%s", "unable to parse access token ttl", op, err.Error()))
+	}
+
+	return parsedTTL
+}
+
+func (cfg *Config) GetJwtRefreshTokenTTL() time.Duration {
+	op := runtime.FuncForPC(reflect.ValueOf(cfg.GetJwtRefreshTokenTTL).Pointer()).Name()
+
+	parsedTTL, err := time.ParseDuration(cfg.Jwt.RefreshTokenTTL)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("%s, op=%s, err=%s", "unable to parse refresg token ttl", op, err.Error()))
+	}
+
+	return parsedTTL
 }
 
 func (cfg *Config) GetPostgresConnectionString() string {

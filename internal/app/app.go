@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/upassed/upassed-authentication-service/internal/caching"
 	"github.com/upassed/upassed-authentication-service/internal/config"
+	"github.com/upassed/upassed-authentication-service/internal/jwt"
 	logging "github.com/upassed/upassed-authentication-service/internal/logger"
 	"github.com/upassed/upassed-authentication-service/internal/messanging"
 	credentialsRabbit "github.com/upassed/upassed-authentication-service/internal/messanging/credentials"
@@ -44,10 +45,12 @@ func New(config *config.Config, log *slog.Logger) (*App, error) {
 	credentialsService := credentials.New(config, log, credentialsRepository)
 	credentialsRabbit.Initialize(credentialsService, rabbit, config, log)
 
+	tokenGenerator := jwt.New(config, log)
+
 	appServer := server.New(server.AppServerCreateParams{
 		Config:       config,
 		Log:          log,
-		TokenService: token.New(config, log, credentialsRepository),
+		TokenService: token.New(config, log, tokenGenerator, credentialsRepository),
 	})
 
 	log.Info("app successfully created")

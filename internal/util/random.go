@@ -3,6 +3,7 @@ package util
 import (
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/google/uuid"
+	"github.com/upassed/upassed-authentication-service/internal/jwt"
 	event "github.com/upassed/upassed-authentication-service/internal/messanging/model"
 	domain "github.com/upassed/upassed-authentication-service/internal/repository/model"
 	business "github.com/upassed/upassed-authentication-service/internal/service/model"
@@ -42,8 +43,22 @@ func RandomClientTokenGenerateRequest() *client.TokenGenerateRequest {
 	}
 }
 
+func RandomBusinessTokenGenerateRequest() *business.TokenGenerateRequest {
+	return &business.TokenGenerateRequest{
+		Username: gofakeit.Username(),
+		Password: gofakeit.Password(true, true, true, true, true, 24),
+	}
+}
+
 func RandomBusinessTokenGenerateResponse() *business.TokenGenerateResponse {
 	return &business.TokenGenerateResponse{
+		AccessToken:  gofakeit.Slogan(),
+		RefreshToken: gofakeit.Slogan(),
+	}
+}
+
+func RandomJwtGeneratedTokens() *jwt.GeneratedTokens {
+	return &jwt.GeneratedTokens{
 		AccessToken:  gofakeit.Slogan(),
 		RefreshToken: gofakeit.Slogan(),
 	}

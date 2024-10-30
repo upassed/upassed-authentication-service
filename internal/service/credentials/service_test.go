@@ -123,7 +123,7 @@ func TestCreate_ErrorSavingCredentialsToDatabase(t *testing.T) {
 
 func TestCreate_DeadlineExceeded(t *testing.T) {
 	oldTimeout := cfg.Timeouts.EndpointExecutionTimeoutMS
-	cfg.Timeouts.EndpointExecutionTimeoutMS = "1"
+	cfg.Timeouts.EndpointExecutionTimeoutMS = "0"
 
 	credentialsRepository := new(mockCredentialsRepository)
 

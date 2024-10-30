@@ -14,6 +14,10 @@ migrations:
     migrations_table_name: ${MIGRATIONS_TABLE_NAME}
 timeouts:
     endpoint_execution_timeout_ms: ${ENDPOINT_EXECUTION_TIMEOUT_MS}
+jwt:
+    access_token_ttl: ${JWT_ACCESS_TOKEN_TTL}
+    refresh_token_ttl: ${JWT_REFRESH_TOKEN_TTL}
+    secret: ${JWT_SECRET}
 tracing:
     host: ${JAEGER_HOST}
     port: ${JAEGER_PORT}

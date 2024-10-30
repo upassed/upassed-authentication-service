@@ -3,6 +3,7 @@ package token
 import (
 	"context"
 	"github.com/upassed/upassed-authentication-service/internal/config"
+	"github.com/upassed/upassed-authentication-service/internal/jwt"
 	domain "github.com/upassed/upassed-authentication-service/internal/repository/model"
 	business "github.com/upassed/upassed-authentication-service/internal/service/model"
 	"log/slog"
@@ -17,6 +18,7 @@ type Service interface {
 type tokenServiceImpl struct {
 	cfg                   *config.Config
 	log                   *slog.Logger
+	tokenGenerator        jwt.TokenGenerator
 	credentialsRepository credentialsRepository
 }
 
@@ -24,10 +26,11 @@ type credentialsRepository interface {
 	FindByUsername(ctx context.Context, username string) (*domain.Credentials, error)
 }
 
-func New(cfg *config.Config, log *slog.Logger, credentialsRepository credentialsRepository) Service {
+func New(cfg *config.Config, log *slog.Logger, tokenGenerator jwt.TokenGenerator, credentialsRepository credentialsRepository) Service {
 	return &tokenServiceImpl{
 		cfg:                   cfg,
 		log:                   log,
+		tokenGenerator:        tokenGenerator,
 		credentialsRepository: credentialsRepository,
 	}
 }

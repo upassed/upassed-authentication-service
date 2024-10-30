@@ -14,6 +14,10 @@ migrations:
     migrations_table_name: "migrations"
 timeouts:
     endpoint_execution_timeout_ms: 40000
+jwt:
+    access_token_ttl: 5m
+    refresh_token_ttl: 5m
+    secret: some-very-long-jwt-secret
 tracing:
     host: localhost
     port: 4317
