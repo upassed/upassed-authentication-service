@@ -74,9 +74,9 @@ func verifyToken(t *testing.T, username string, token string, tokenTTL time.Dura
 
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)
 	assert.True(t, ok)
-	assert.Equal(t, username, claims["username"])
+	assert.Equal(t, username, claims[libjwt.UsernameKey])
 
-	expirationDate, ok := claims["exp"].(float64)
+	expirationDate, ok := claims[libjwt.ExpKey].(float64)
 	assert.True(t, ok)
 	assert.WithinDuration(t, time.Unix(int64(expirationDate), 0), time.Now().Add(tokenTTL), 10*time.Second)
 }

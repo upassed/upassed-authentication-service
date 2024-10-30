@@ -58,10 +58,15 @@ func (generator *tokenGeneratorImpl) GenerateFor(username string) (*GeneratedTok
 	}, nil
 }
 
+const (
+	UsernameKey = "username"
+	ExpKey      = "exp"
+)
+
 func (generator *tokenGeneratorImpl) generateAccessToken(username string) (string, error) {
 	claims := jwt.MapClaims{
-		"username": username,
-		"exp":      time.Now().Add(generator.cfg.GetJwtAccessTokenTTL()).Unix(),
+		UsernameKey: username,
+		ExpKey:      time.Now().Add(generator.cfg.GetJwtAccessTokenTTL()).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -75,8 +80,8 @@ func (generator *tokenGeneratorImpl) generateAccessToken(username string) (strin
 
 func (generator *tokenGeneratorImpl) generateRefreshToken(username string) (string, error) {
 	claims := jwt.MapClaims{
-		"username": username,
-		"exp":      time.Now().Add(generator.cfg.GetJwtRefreshTokenTTL()).Unix(),
+		UsernameKey: username,
+		ExpKey:      time.Now().Add(generator.cfg.GetJwtRefreshTokenTTL()).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
