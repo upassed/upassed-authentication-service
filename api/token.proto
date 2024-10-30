@@ -8,6 +8,8 @@ option go_package = "upassed.authentication.v1;client";
 
 service Token {
   rpc Generate (TokenGenerateRequest) returns (TokenGenerateResponse);
+  rpc Refresh (TokenRefreshRequest) returns (TokenRefreshResponse);
+  rpc Validate (TokenValidateRequest) returns (TokenValidateResponse);
 }
 
 message TokenGenerateRequest {
@@ -20,4 +22,21 @@ message TokenGenerateRequest {
 message TokenGenerateResponse {
   string access_token = 1;
   string refresh_token = 2;
+}
+
+message TokenRefreshRequest {
+  string refresh_token = 1;
+}
+
+message TokenRefreshResponse {
+  string new_access_token = 1;
+}
+
+message TokenValidateRequest {
+  string access_token = 1;
+}
+
+message TokenValidateResponse {
+  string username = 1;
+  string account_type = 2;
 }

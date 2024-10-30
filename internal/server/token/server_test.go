@@ -141,8 +141,67 @@ func TestGenerateToken_HappyPath(t *testing.T) {
 	response, err := tokenClient.Generate(context.Background(), request)
 	require.Nil(t, err)
 
-	assert.Equal(t, expectedServiceResponse.AccessToken, response.AccessToken)
-	assert.Equal(t, expectedServiceResponse.RefreshToken, response.RefreshToken)
+	assert.Equal(t, expectedServiceResponse.AccessToken, response.GetAccessToken())
+	assert.Equal(t, expectedServiceResponse.RefreshToken, response.GetRefreshToken())
+
+	clearTokenServiceMockCalls()
+}
+
+func TestRefreshToken_ServiceError(t *testing.T) {
+	request := util.RandomClientTokenRefreshRequest()
+
+	expectedServiceError := errors.New("some service error")
+	tokenSvc.On("Refresh", mock.Anything, mock.Anything).Return(nil, expectedServiceError)
+
+	_, err := tokenClient.Refresh(context.Background(), request)
+	require.NotNil(t, err)
+
+	convertedError := status.Convert(err)
+	assert.Equal(t, expectedServiceError.Error(), convertedError.Message())
+
+	clearTokenServiceMockCalls()
+}
+
+func TestRefreshToken_HappyPath(t *testing.T) {
+	request := util.RandomClientTokenRefreshRequest()
+
+	expectedServiceResponse := util.RandomBusinessTokenRefreshResponse()
+	tokenSvc.On("Refresh", mock.Anything, mock.Anything).Return(expectedServiceResponse, nil)
+
+	response, err := tokenClient.Refresh(context.Background(), request)
+	require.Nil(t, err)
+
+	assert.Equal(t, expectedServiceResponse.NewAccessToken, response.GetNewAccessToken())
+
+	clearTokenServiceMockCalls()
+}
+
+func TestValidateToken_ServiceError(t *testing.T) {
+	request := util.RandomClientTokenValidateRequest()
+
+	expectedServiceError := errors.New("some service error")
+	tokenSvc.On("Validate", mock.Anything, mock.Anything).Return(nil, expectedServiceError)
+
+	_, err := tokenClient.Validate(context.Background(), request)
+	require.NotNil(t, err)
+
+	convertedError := status.Convert(err)
+	assert.Equal(t, expectedServiceError.Error(), convertedError.Message())
+
+	clearTokenServiceMockCalls()
+}
+
+func TestValidateToken_HappyPath(t *testing.T) {
+	request := util.RandomClientTokenValidateRequest()
+
+	expectedServiceResponse := util.RandomBusinessTokenValidateResponse()
+	tokenSvc.On("Validate", mock.Anything, mock.Anything).Return(expectedServiceResponse, nil)
+
+	response, err := tokenClient.Validate(context.Background(), request)
+	require.Nil(t, err)
+
+	assert.Equal(t, expectedServiceResponse.Username, response.Username)
+	assert.Equal(t, string(expectedServiceResponse.AccountType), response.GetAccountType())
 
 	clearTokenServiceMockCalls()
 }

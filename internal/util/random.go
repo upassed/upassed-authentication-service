@@ -46,6 +46,18 @@ func RandomClientTokenGenerateRequest() *client.TokenGenerateRequest {
 	}
 }
 
+func RandomClientTokenRefreshRequest() *client.TokenRefreshRequest {
+	return &client.TokenRefreshRequest{
+		RefreshToken: gofakeit.Slogan(),
+	}
+}
+
+func RandomClientTokenValidateRequest() *client.TokenValidateRequest {
+	return &client.TokenValidateRequest{
+		AccessToken: gofakeit.Slogan(),
+	}
+}
+
 func RandomBusinessTokenGenerateRequest() *business.TokenGenerateRequest {
 	return &business.TokenGenerateRequest{
 		Username: gofakeit.Username(),
@@ -57,6 +69,19 @@ func RandomBusinessTokenGenerateResponse() *business.TokenGenerateResponse {
 	return &business.TokenGenerateResponse{
 		AccessToken:  gofakeit.Slogan(),
 		RefreshToken: gofakeit.Slogan(),
+	}
+}
+
+func RandomBusinessTokenRefreshResponse() *business.TokenRefreshResponse {
+	return &business.TokenRefreshResponse{
+		NewAccessToken: gofakeit.Slogan(),
+	}
+}
+
+func RandomBusinessTokenValidateResponse() *business.TokenValidateResponse {
+	return &business.TokenValidateResponse{
+		Username:    gofakeit.Username(),
+		AccountType: business.StudentAccountType,
 	}
 }
 

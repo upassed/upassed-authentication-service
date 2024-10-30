@@ -18,3 +18,28 @@ func ConvertToTokenGenerateResponse(response *business.TokenGenerateResponse) *c
 		RefreshToken: response.RefreshToken,
 	}
 }
+
+func ConvertToTokenRefreshRequest(request *client.TokenRefreshRequest) *business.TokenRefreshRequest {
+	return &business.TokenRefreshRequest{
+		RefreshToken: request.RefreshToken,
+	}
+}
+
+func ConvertToTokenRefreshResponse(request *business.TokenRefreshResponse) *client.TokenRefreshResponse {
+	return &client.TokenRefreshResponse{
+		NewAccessToken: request.NewAccessToken,
+	}
+}
+
+func ConvertToTokenValidateRequest(request *client.TokenValidateRequest) *business.TokenValidateRequest {
+	return &business.TokenValidateRequest{
+		AccessToken: request.AccessToken,
+	}
+}
+
+func ConvertToTokenValidateResponse(request *business.TokenValidateResponse) *client.TokenValidateResponse {
+	return &client.TokenValidateResponse{
+		Username:    request.Username,
+		AccountType: string(request.AccountType),
+	}
+}

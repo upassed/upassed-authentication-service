@@ -20,6 +20,8 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	Token_Generate_FullMethodName = "/api.Token/Generate"
+	Token_Refresh_FullMethodName  = "/api.Token/Refresh"
+	Token_Validate_FullMethodName = "/api.Token/Validate"
 )
 
 // TokenClient is the client API for Token service.
@@ -27,6 +29,8 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TokenClient interface {
 	Generate(ctx context.Context, in *TokenGenerateRequest, opts ...grpc.CallOption) (*TokenGenerateResponse, error)
+	Refresh(ctx context.Context, in *TokenRefreshRequest, opts ...grpc.CallOption) (*TokenRefreshResponse, error)
+	Validate(ctx context.Context, in *TokenValidateRequest, opts ...grpc.CallOption) (*TokenValidateResponse, error)
 }
 
 type tokenClient struct {
@@ -47,11 +51,33 @@ func (c *tokenClient) Generate(ctx context.Context, in *TokenGenerateRequest, op
 	return out, nil
 }
 
+func (c *tokenClient) Refresh(ctx context.Context, in *TokenRefreshRequest, opts ...grpc.CallOption) (*TokenRefreshResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TokenRefreshResponse)
+	err := c.cc.Invoke(ctx, Token_Refresh_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tokenClient) Validate(ctx context.Context, in *TokenValidateRequest, opts ...grpc.CallOption) (*TokenValidateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TokenValidateResponse)
+	err := c.cc.Invoke(ctx, Token_Validate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TokenServer is the server API for Token service.
 // All implementations must embed UnimplementedTokenServer
 // for forward compatibility.
 type TokenServer interface {
 	Generate(context.Context, *TokenGenerateRequest) (*TokenGenerateResponse, error)
+	Refresh(context.Context, *TokenRefreshRequest) (*TokenRefreshResponse, error)
+	Validate(context.Context, *TokenValidateRequest) (*TokenValidateResponse, error)
 	mustEmbedUnimplementedTokenServer()
 }
 
@@ -64,6 +90,12 @@ type UnimplementedTokenServer struct{}
 
 func (UnimplementedTokenServer) Generate(context.Context, *TokenGenerateRequest) (*TokenGenerateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Generate not implemented")
+}
+func (UnimplementedTokenServer) Refresh(context.Context, *TokenRefreshRequest) (*TokenRefreshResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Refresh not implemented")
+}
+func (UnimplementedTokenServer) Validate(context.Context, *TokenValidateRequest) (*TokenValidateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Validate not implemented")
 }
 func (UnimplementedTokenServer) mustEmbedUnimplementedTokenServer() {}
 func (UnimplementedTokenServer) testEmbeddedByValue()               {}
@@ -104,6 +136,42 @@ func _Token_Generate_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Token_Refresh_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TokenRefreshRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TokenServer).Refresh(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Token_Refresh_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TokenServer).Refresh(ctx, req.(*TokenRefreshRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Token_Validate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TokenValidateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TokenServer).Validate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Token_Validate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TokenServer).Validate(ctx, req.(*TokenValidateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Token_ServiceDesc is the grpc.ServiceDesc for Token service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +182,14 @@ var Token_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Generate",
 			Handler:    _Token_Generate_Handler,
+		},
+		{
+			MethodName: "Refresh",
+			Handler:    _Token_Refresh_Handler,
+		},
+		{
+			MethodName: "Validate",
+			Handler:    _Token_Validate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
