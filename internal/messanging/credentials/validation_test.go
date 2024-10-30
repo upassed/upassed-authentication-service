@@ -102,6 +102,15 @@ func TestCredentialsCreateRequestPasswordValidation_NoPunctual(t *testing.T) {
 	require.NotNil(t, err)
 }
 
+func TestCredentialsCreateRequestPasswordValidation_InvalidAccountType(t *testing.T) {
+	request := util.RandomEvenCredentialsCreateRequest()
+	request.Password = "heavy_METAL11!!"
+	request.AccountType = "invalid"
+
+	err := request.Validate()
+	require.NotNil(t, err)
+}
+
 func TestCredentialsCreateRequestPasswordValidation_Valid(t *testing.T) {
 	request := util.RandomEvenCredentialsCreateRequest()
 	request.Password = "heavy_METAL11!!"

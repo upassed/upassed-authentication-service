@@ -15,9 +15,8 @@ import (
 )
 
 var (
-	ErrFindingCredentialsByUsernameDeadlineExceeded = errors.New("finding credentials by username deadline exceeded")
+	errFindingCredentialsByUsernameDeadlineExceeded = errors.New("finding credentials by username deadline exceeded")
 	ErrPasswordHashNotMatch                         = errors.New("password hash does not match")
-	ErrGeneratingTokens                             = errors.New("error while generating access and refresh tokens")
 )
 
 func (service *tokenServiceImpl) Generate(ctx context.Context, request *business.TokenGenerateRequest) (*business.TokenGenerateResponse, error) {
@@ -50,7 +49,7 @@ func (service *tokenServiceImpl) Generate(ctx context.Context, request *business
 		if errors.Is(err, context.DeadlineExceeded) {
 			log.Error("credentials finding deadline exceeded")
 			span.SetAttributes(attribute.String("err", err.Error()))
-			return nil, handling.Wrap(ErrFindingCredentialsByUsernameDeadlineExceeded, handling.WithCode(codes.DeadlineExceeded))
+			return nil, handling.Wrap(errFindingCredentialsByUsernameDeadlineExceeded, handling.WithCode(codes.DeadlineExceeded))
 		}
 
 		log.Error("error while finding credentials", logging.Error(err))

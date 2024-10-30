@@ -16,5 +16,6 @@ func ConvertToDomainCredentials(credentials *business.Credentials) (*domain.Cred
 		ID:           credentials.ID,
 		Username:     credentials.Username,
 		PasswordHash: passwordHash,
+		AccountType:  domain.AccountType(credentials.AccountType),
 	}, nil
 }

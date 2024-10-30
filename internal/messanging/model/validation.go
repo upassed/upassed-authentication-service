@@ -39,3 +39,10 @@ func ValidatePassword() func(fl validator.FieldLevel) bool {
 		return hasMinLen && hasUpper && hasLower && hasNumber && hasSpecial
 	}
 }
+
+func ValidateAccountType() func(fl validator.FieldLevel) bool {
+	return func(fl validator.FieldLevel) bool {
+		accountTypeToValidate := fl.Field().String()
+		return accountTypeToValidate == string(TeacherAccountType) || accountTypeToValidate == string(StudentAccountType)
+	}
+}

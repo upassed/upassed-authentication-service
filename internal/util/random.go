@@ -13,16 +13,18 @@ import (
 
 func RandomEvenCredentialsCreateRequest() *event.CredentialsCreateRequest {
 	return &event.CredentialsCreateRequest{
-		Username: gofakeit.Username(),
-		Password: gofakeit.Password(true, true, true, true, true, 24),
+		Username:    gofakeit.Username(),
+		Password:    gofakeit.Password(true, true, true, true, true, 24),
+		AccountType: event.TeacherAccountType,
 	}
 }
 
 func RandomBusinessCredentials() *business.Credentials {
 	return &business.Credentials{
-		ID:       uuid.New(),
-		Username: gofakeit.Username(),
-		Password: gofakeit.Password(true, true, true, true, true, 24),
+		ID:          uuid.New(),
+		Username:    gofakeit.Username(),
+		Password:    gofakeit.Password(true, true, true, true, true, 24),
+		AccountType: business.TeacherAccountType,
 	}
 }
 
@@ -33,6 +35,7 @@ func RandomDomainCredentials() *domain.Credentials {
 		ID:           uuid.New(),
 		Username:     gofakeit.Username(),
 		PasswordHash: passwordHash,
+		AccountType:  domain.TeacherAccountType,
 	}
 }
 
@@ -60,6 +63,12 @@ func RandomBusinessTokenGenerateResponse() *business.TokenGenerateResponse {
 func RandomBusinessTokenRefreshRequest() *business.TokenRefreshRequest {
 	return &business.TokenRefreshRequest{
 		RefreshToken: gofakeit.Slogan(),
+	}
+}
+
+func RandomBusinessTokenValidateRequest() *business.TokenValidateRequest {
+	return &business.TokenValidateRequest{
+		AccessToken: gofakeit.Slogan(),
 	}
 }
 

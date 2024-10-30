@@ -18,8 +18,9 @@ func ConvertToCredentialsCreateRequest(messageBody []byte) (*event.CredentialsCr
 
 func ConvertToCredentials(request *event.CredentialsCreateRequest) *business.Credentials {
 	return &business.Credentials{
-		ID:       uuid.New(),
-		Username: request.Username,
-		Password: request.Password,
+		ID:          uuid.New(),
+		Username:    request.Username,
+		Password:    request.Password,
+		AccountType: business.AccountType(request.AccountType),
 	}
 }

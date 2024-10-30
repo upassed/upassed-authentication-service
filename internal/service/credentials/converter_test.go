@@ -16,6 +16,7 @@ func TestConvertToDomainCredentials_HappyPath(t *testing.T) {
 
 	assert.Equal(t, credentialsToConvert.ID, convertedCredentials.ID)
 	assert.Equal(t, credentialsToConvert.Username, convertedCredentials.Username)
+	assert.Equal(t, string(credentialsToConvert.AccountType), string(convertedCredentials.AccountType))
 
 	err = bcrypt.CompareHashAndPassword(convertedCredentials.PasswordHash, []byte(credentialsToConvert.Password))
 	require.Nil(t, err)

@@ -6,6 +6,7 @@ type Credentials struct {
 	ID           uuid.UUID
 	Username     string
 	PasswordHash []byte
+	AccountType  AccountType
 }
 
 func (Credentials) TableName() string {

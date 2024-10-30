@@ -2,11 +2,20 @@ package token
 
 import (
 	"context"
+	"errors"
 	"github.com/upassed/upassed-authentication-service/internal/config"
 	"github.com/upassed/upassed-authentication-service/internal/jwt"
 	domain "github.com/upassed/upassed-authentication-service/internal/repository/model"
 	business "github.com/upassed/upassed-authentication-service/internal/service/model"
 	"log/slog"
+)
+
+var (
+	ErrParsingToken            = errors.New("unable to parse token")
+	ErrGeneratingTokens        = errors.New("error while generating access and refresh tokens")
+	ErrTokenInvalid            = errors.New("token is invalid or expired")
+	errExtractingTokenClaims   = errors.New("unable to extract map claims from token")
+	errUsernameClaimNotPresent = errors.New("username key is not present in refresh token claims")
 )
 
 type Service interface {

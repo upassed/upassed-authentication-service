@@ -16,11 +16,7 @@ import (
 )
 
 var (
-	ErrParsingRefreshToken                = errors.New("unable to parse refresh token")
-	ErrRefreshTokenInvalid                = errors.New("refresh token is invalid or expired")
-	errExtractingRefreshTokenClaims       = errors.New("unable to extract map claims from refresh token")
-	errUsernameClaimNotPresent            = errors.New("username key is not present in refresh token claims")
-	ErrExtractingUsernameDeadlineExceeded = errors.New("extracting username from refresh token deadline exceeded")
+	errExtractingUsernameDeadlineExceeded = errors.New("extracting username from refresh token deadline exceeded")
 )
 
 func (service *tokenServiceImpl) Refresh(ctx context.Context, request *business.TokenRefreshRequest) (*business.TokenRefreshResponse, error) {
@@ -38,21 +34,21 @@ func (service *tokenServiceImpl) Refresh(ctx context.Context, request *business.
 		parsedToken, err := service.parseToken(request.RefreshToken)
 		if err != nil {
 			log.Error("unable to parse refresh token", logging.Error(err))
-			span.SetAttributes(attribute.String("err", ErrParsingRefreshToken.Error()))
-			return "", ErrParsingRefreshToken
+			span.SetAttributes(attribute.String("err", ErrParsingToken.Error()))
+			return "", ErrParsingToken
 		}
 
 		if !parsedToken.Valid {
 			log.Error("refresh token is invalid")
-			span.SetAttributes(attribute.String("err", ErrRefreshTokenInvalid.Error()))
-			return "", ErrRefreshTokenInvalid
+			span.SetAttributes(attribute.String("err", ErrTokenInvalid.Error()))
+			return "", ErrTokenInvalid
 		}
 
 		claims, ok := parsedToken.Claims.(jwt.MapClaims)
 		if !ok {
 			log.Error("unable to extract map claims from refresh token")
-			span.SetAttributes(attribute.String("err", errExtractingRefreshTokenClaims.Error()))
-			return "", errExtractingRefreshTokenClaims
+			span.SetAttributes(attribute.String("err", errExtractingTokenClaims.Error()))
+			return "", errExtractingTokenClaims
 		}
 
 		username, ok := claims[libjwt.UsernameKey].(string)
@@ -78,7 +74,7 @@ func (service *tokenServiceImpl) Refresh(ctx context.Context, request *business.
 		if errors.Is(err, context.DeadlineExceeded) {
 			log.Error("extracting username deadline exceeded")
 			span.SetAttributes(attribute.String("err", err.Error()))
-			return nil, handling.Wrap(ErrExtractingUsernameDeadlineExceeded, handling.WithCode(codes.DeadlineExceeded))
+			return nil, handling.Wrap(errExtractingUsernameDeadlineExceeded, handling.WithCode(codes.DeadlineExceeded))
 		}
 
 		log.Error("error while extracting username from refresh token", logging.Error(err))
@@ -90,14 +86,4 @@ func (service *tokenServiceImpl) Refresh(ctx context.Context, request *business.
 	return &business.TokenRefreshResponse{
 		NewAccessToken: refreshedAccessToken,
 	}, nil
-}
-
-func (service *tokenServiceImpl) parseToken(token string) (*jwt.Token, error) {
-	return jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, jwt.ErrInvalidKeyType
-		}
-
-		return []byte(service.cfg.Jwt.Secret), nil
-	})
 }

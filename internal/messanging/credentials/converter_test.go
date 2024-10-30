@@ -34,4 +34,5 @@ func TestConvertToStudent(t *testing.T) {
 	assert.NotNil(t, convertedCredentials.ID)
 	assert.Equal(t, request.Username, convertedCredentials.Username)
 	assert.Equal(t, request.Password, convertedCredentials.Password)
+	assert.Equal(t, string(request.AccountType), string(convertedCredentials.AccountType))
 }

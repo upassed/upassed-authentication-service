@@ -22,8 +22,6 @@ type TokenValidateRequest struct {
 	AccessToken string
 }
 
-type AccountType string
-
 type TokenValidateResponse struct {
 	Username    string
 	AccountType AccountType

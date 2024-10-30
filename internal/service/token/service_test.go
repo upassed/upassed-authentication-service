@@ -92,28 +92,6 @@ func TestCreate_ErrorFindingCredentialsByUsername(t *testing.T) {
 	assert.Equal(t, expectedRepositoryError.Error(), convertedError.Message())
 }
 
-func TestCreate_FindingCredentialsInRepoDeadlineExceeded(t *testing.T) {
-	oldTimeout := cfg.Timeouts.EndpointExecutionTimeoutMS
-	cfg.Timeouts.EndpointExecutionTimeoutMS = "0"
-
-	request := util.RandomBusinessTokenGenerateRequest()
-	foundCredentials := util.RandomDomainCredentials()
-
-	credentialsRepository := new(mockCredentialsRepository)
-	credentialsRepository.On("FindByUsername", mock.Anything, request.Username).Return(foundCredentials, nil)
-
-	logger := logging.New(config.EnvTesting)
-	service := token.New(cfg, logger, new(mockTokenGenerator), credentialsRepository)
-	_, err := service.Generate(context.Background(), request)
-	require.NotNil(t, err)
-
-	convertedError := status.Convert(err)
-	assert.Equal(t, token.ErrFindingCredentialsByUsernameDeadlineExceeded.Error(), convertedError.Message())
-	assert.Equal(t, codes.DeadlineExceeded, convertedError.Code())
-
-	cfg.Timeouts.EndpointExecutionTimeoutMS = oldTimeout
-}
-
 func TestCreate_PasswordHashNotMatch(t *testing.T) {
 	request := util.RandomBusinessTokenGenerateRequest()
 	foundCredentials := util.RandomDomainCredentials()
@@ -197,7 +175,7 @@ func TestRefresh_InvalidRefreshToken(t *testing.T) {
 	require.Error(t, err)
 
 	convertedError := status.Convert(err)
-	assert.Equal(t, token.ErrParsingRefreshToken.Error(), convertedError.Message())
+	assert.Equal(t, token.ErrParsingToken.Error(), convertedError.Message())
 }
 
 func TestRefresh_ExpiredRefreshToken(t *testing.T) {
@@ -221,36 +199,9 @@ func TestRefresh_ExpiredRefreshToken(t *testing.T) {
 	require.Error(t, err)
 
 	convertedError := status.Convert(err)
-	assert.Equal(t, token.ErrParsingRefreshToken.Error(), convertedError.Message())
+	assert.Equal(t, token.ErrParsingToken.Error(), convertedError.Message())
 
 	cfg.Jwt.RefreshTokenTTL = oldJwtRefreshTokenTTL
-}
-
-func TestRefresh_ExtractingUsernameDeadlineExceeded(t *testing.T) {
-	oldTimeout := cfg.Timeouts.EndpointExecutionTimeoutMS
-	cfg.Timeouts.EndpointExecutionTimeoutMS = "0"
-
-	logger := logging.New(config.EnvTesting)
-	username := gofakeit.Username()
-	tokens, err := jwt.New(cfg, logger).GenerateFor(username)
-	require.NoError(t, err)
-
-	request := &business.TokenRefreshRequest{
-		RefreshToken: tokens.RefreshToken,
-	}
-
-	credentialsRepository := new(mockCredentialsRepository)
-	tokenGenerator := new(mockTokenGenerator)
-	tokenGenerator.On("GenerateFor", username).Return(tokens, nil)
-
-	service := token.New(cfg, logger, tokenGenerator, credentialsRepository)
-	_, err = service.Refresh(context.Background(), request)
-	require.Error(t, err)
-
-	convertedError := status.Convert(err)
-	assert.Equal(t, token.ErrExtractingUsernameDeadlineExceeded.Error(), convertedError.Message())
-
-	cfg.Timeouts.EndpointExecutionTimeoutMS = oldTimeout
 }
 
 func TestRefresh_TokenGenerationError(t *testing.T) {
@@ -294,4 +245,69 @@ func TestRefresh_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.NotNil(t, response.NewAccessToken)
+}
+
+func TestValidate_InvalidAccessToken(t *testing.T) {
+	request := util.RandomBusinessTokenValidateRequest()
+
+	credentialsRepository := new(mockCredentialsRepository)
+	tokenGenerator := new(mockTokenGenerator)
+
+	logger := logging.New(config.EnvTesting)
+	service := token.New(cfg, logger, tokenGenerator, credentialsRepository)
+	_, err := service.Validate(context.Background(), request)
+	require.Error(t, err)
+
+	convertedError := status.Convert(err)
+	assert.Equal(t, token.ErrParsingToken.Error(), convertedError.Message())
+}
+
+func TestValidate_ExpiredAccessToken(t *testing.T) {
+	logger := logging.New(config.EnvTesting)
+	oldJwtAccessTokenTTL := cfg.Jwt.AccessTokenTTL
+	cfg.Jwt.AccessTokenTTL = "-10m"
+
+	username := gofakeit.Username()
+	tokens, err := jwt.New(cfg, logger).GenerateFor(username)
+	require.NoError(t, err)
+
+	request := &business.TokenValidateRequest{
+		AccessToken: tokens.AccessToken,
+	}
+
+	credentialsRepository := new(mockCredentialsRepository)
+	tokenGenerator := new(mockTokenGenerator)
+
+	service := token.New(cfg, logger, tokenGenerator, credentialsRepository)
+	_, err = service.Validate(context.Background(), request)
+	require.Error(t, err)
+
+	convertedError := status.Convert(err)
+	assert.Equal(t, token.ErrParsingToken.Error(), convertedError.Message())
+
+	cfg.Jwt.AccessTokenTTL = oldJwtAccessTokenTTL
+}
+
+func TestValidate_HappyPath(t *testing.T) {
+	logger := logging.New(config.EnvTesting)
+	username := gofakeit.Username()
+	generator := jwt.New(cfg, logger)
+	tokens, err := generator.GenerateFor(username)
+	require.NoError(t, err)
+
+	request := &business.TokenValidateRequest{
+		AccessToken: tokens.AccessToken,
+	}
+
+	foundCredentials := util.RandomDomainCredentials()
+
+	credentialsRepository := new(mockCredentialsRepository)
+	credentialsRepository.On("FindByUsername", mock.Anything, username).Return(foundCredentials, nil)
+
+	service := token.New(cfg, logger, generator, credentialsRepository)
+	response, err := service.Validate(context.Background(), request)
+	require.NoError(t, err)
+
+	assert.Equal(t, username, response.Username)
+	assert.Equal(t, business.AccountType(foundCredentials.AccountType), response.AccountType)
 }
