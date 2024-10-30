@@ -3,6 +3,7 @@ package token_test
 import (
 	"context"
 	"errors"
+	"github.com/brianvoe/gofakeit/v7"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -11,6 +12,7 @@ import (
 	"github.com/upassed/upassed-authentication-service/internal/jwt"
 	logging "github.com/upassed/upassed-authentication-service/internal/logger"
 	domain "github.com/upassed/upassed-authentication-service/internal/repository/model"
+	business "github.com/upassed/upassed-authentication-service/internal/service/model"
 	"github.com/upassed/upassed-authentication-service/internal/service/token"
 	"github.com/upassed/upassed-authentication-service/internal/util"
 	"golang.org/x/crypto/bcrypt"
@@ -181,4 +183,115 @@ func TestCreate_HappyPath(t *testing.T) {
 
 	assert.NotNil(t, response.AccessToken)
 	assert.NotNil(t, response.RefreshToken)
+}
+
+func TestRefresh_InvalidRefreshToken(t *testing.T) {
+	request := util.RandomBusinessTokenRefreshRequest()
+
+	credentialsRepository := new(mockCredentialsRepository)
+	tokenGenerator := new(mockTokenGenerator)
+
+	logger := logging.New(config.EnvTesting)
+	service := token.New(cfg, logger, tokenGenerator, credentialsRepository)
+	_, err := service.Refresh(context.Background(), request)
+	require.Error(t, err)
+
+	convertedError := status.Convert(err)
+	assert.Equal(t, token.ErrParsingRefreshToken.Error(), convertedError.Message())
+}
+
+func TestRefresh_ExpiredRefreshToken(t *testing.T) {
+	logger := logging.New(config.EnvTesting)
+	oldJwtRefreshTokenTTL := cfg.Jwt.RefreshTokenTTL
+	cfg.Jwt.RefreshTokenTTL = "-10m"
+
+	username := gofakeit.Username()
+	tokens, err := jwt.New(cfg, logger).GenerateFor(username)
+	require.NoError(t, err)
+
+	request := &business.TokenRefreshRequest{
+		RefreshToken: tokens.RefreshToken,
+	}
+
+	credentialsRepository := new(mockCredentialsRepository)
+	tokenGenerator := new(mockTokenGenerator)
+
+	service := token.New(cfg, logger, tokenGenerator, credentialsRepository)
+	_, err = service.Refresh(context.Background(), request)
+	require.Error(t, err)
+
+	convertedError := status.Convert(err)
+	assert.Equal(t, token.ErrParsingRefreshToken.Error(), convertedError.Message())
+
+	cfg.Jwt.RefreshTokenTTL = oldJwtRefreshTokenTTL
+}
+
+func TestRefresh_ExtractingUsernameDeadlineExceeded(t *testing.T) {
+	oldTimeout := cfg.Timeouts.EndpointExecutionTimeoutMS
+	cfg.Timeouts.EndpointExecutionTimeoutMS = "0"
+
+	logger := logging.New(config.EnvTesting)
+	username := gofakeit.Username()
+	tokens, err := jwt.New(cfg, logger).GenerateFor(username)
+	require.NoError(t, err)
+
+	request := &business.TokenRefreshRequest{
+		RefreshToken: tokens.RefreshToken,
+	}
+
+	credentialsRepository := new(mockCredentialsRepository)
+	tokenGenerator := new(mockTokenGenerator)
+	tokenGenerator.On("GenerateFor", username).Return(tokens, nil)
+
+	service := token.New(cfg, logger, tokenGenerator, credentialsRepository)
+	_, err = service.Refresh(context.Background(), request)
+	require.Error(t, err)
+
+	convertedError := status.Convert(err)
+	assert.Equal(t, token.ErrExtractingUsernameDeadlineExceeded.Error(), convertedError.Message())
+
+	cfg.Timeouts.EndpointExecutionTimeoutMS = oldTimeout
+}
+
+func TestRefresh_TokenGenerationError(t *testing.T) {
+	logger := logging.New(config.EnvTesting)
+	username := gofakeit.Username()
+	generator := jwt.New(cfg, logger)
+	tokens, err := generator.GenerateFor(username)
+	require.NoError(t, err)
+
+	request := &business.TokenRefreshRequest{
+		RefreshToken: tokens.RefreshToken,
+	}
+
+	credentialsRepository := new(mockCredentialsRepository)
+	tokenGenerator := new(mockTokenGenerator)
+	tokenGenerator.On("GenerateFor", username).Return(nil, errors.New("some error"))
+
+	service := token.New(cfg, logger, tokenGenerator, credentialsRepository)
+	_, err = service.Refresh(context.Background(), request)
+	require.Error(t, err)
+
+	convertedError := status.Convert(err)
+	assert.Equal(t, token.ErrGeneratingTokens.Error(), convertedError.Message())
+}
+
+func TestRefresh_HappyPath(t *testing.T) {
+	logger := logging.New(config.EnvTesting)
+	username := gofakeit.Username()
+	generator := jwt.New(cfg, logger)
+	tokens, err := generator.GenerateFor(username)
+	require.NoError(t, err)
+
+	request := &business.TokenRefreshRequest{
+		RefreshToken: tokens.RefreshToken,
+	}
+
+	credentialsRepository := new(mockCredentialsRepository)
+
+	service := token.New(cfg, logger, generator, credentialsRepository)
+	response, err := service.Refresh(context.Background(), request)
+	require.NoError(t, err)
+
+	assert.NotNil(t, response.NewAccessToken)
 }

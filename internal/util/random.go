@@ -57,6 +57,12 @@ func RandomBusinessTokenGenerateResponse() *business.TokenGenerateResponse {
 	}
 }
 
+func RandomBusinessTokenRefreshRequest() *business.TokenRefreshRequest {
+	return &business.TokenRefreshRequest{
+		RefreshToken: gofakeit.Slogan(),
+	}
+}
+
 func RandomJwtGeneratedTokens() *jwt.GeneratedTokens {
 	return &jwt.GeneratedTokens{
 		AccessToken:  gofakeit.Slogan(),

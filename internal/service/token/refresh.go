@@ -16,11 +16,11 @@ import (
 )
 
 var (
-	errParsingRefreshToken                = errors.New("unable to parse refresh token")
-	errRefreshTokenInvalid                = errors.New("refresh token is invalid or expired")
+	ErrParsingRefreshToken                = errors.New("unable to parse refresh token")
+	ErrRefreshTokenInvalid                = errors.New("refresh token is invalid or expired")
 	errExtractingRefreshTokenClaims       = errors.New("unable to extract map claims from refresh token")
 	errUsernameClaimNotPresent            = errors.New("username key is not present in refresh token claims")
-	errExtractingUsernameDeadlineExceeded = errors.New("extracting username from refresh token deadline exceeded")
+	ErrExtractingUsernameDeadlineExceeded = errors.New("extracting username from refresh token deadline exceeded")
 )
 
 func (service *tokenServiceImpl) Refresh(ctx context.Context, request *business.TokenRefreshRequest) (*business.TokenRefreshResponse, error) {
@@ -38,14 +38,14 @@ func (service *tokenServiceImpl) Refresh(ctx context.Context, request *business.
 		parsedToken, err := service.parseToken(request.RefreshToken)
 		if err != nil {
 			log.Error("unable to parse refresh token", logging.Error(err))
-			span.SetAttributes(attribute.String("err", errParsingRefreshToken.Error()))
-			return "", errParsingRefreshToken
+			span.SetAttributes(attribute.String("err", ErrParsingRefreshToken.Error()))
+			return "", ErrParsingRefreshToken
 		}
 
 		if !parsedToken.Valid {
 			log.Error("refresh token is invalid")
-			span.SetAttributes(attribute.String("err", errRefreshTokenInvalid.Error()))
-			return "", errRefreshTokenInvalid
+			span.SetAttributes(attribute.String("err", ErrRefreshTokenInvalid.Error()))
+			return "", ErrRefreshTokenInvalid
 		}
 
 		claims, ok := parsedToken.Claims.(jwt.MapClaims)
@@ -78,7 +78,7 @@ func (service *tokenServiceImpl) Refresh(ctx context.Context, request *business.
 		if errors.Is(err, context.DeadlineExceeded) {
 			log.Error("extracting username deadline exceeded")
 			span.SetAttributes(attribute.String("err", err.Error()))
-			return nil, handling.Wrap(errExtractingUsernameDeadlineExceeded, handling.WithCode(codes.DeadlineExceeded))
+			return nil, handling.Wrap(ErrExtractingUsernameDeadlineExceeded, handling.WithCode(codes.DeadlineExceeded))
 		}
 
 		log.Error("error while extracting username from refresh token", logging.Error(err))
