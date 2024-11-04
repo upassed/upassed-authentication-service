@@ -6,6 +6,7 @@ import (
 	"github.com/upassed/upassed-authentication-service/internal/handling"
 	logging "github.com/upassed/upassed-authentication-service/internal/logger"
 	domain "github.com/upassed/upassed-authentication-service/internal/repository/model"
+	"github.com/upassed/upassed-authentication-service/internal/tracing"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"google.golang.org/grpc/codes"
@@ -30,7 +31,7 @@ func (repository *credentialsRepositoryImpl) Save(ctx context.Context, credentia
 	saveResult := repository.db.WithContext(ctx).Create(&credentials)
 	if err := saveResult.Error; err != nil || saveResult.RowsAffected != 1 {
 		log.Error("error while saving credentials data to a database", logging.Error(err))
-		span.SetAttributes(attribute.String("err", err.Error()))
+		tracing.SetSpanError(span, err)
 		return handling.New(ErrSavingCredentials.Error(), codes.Internal)
 	}
 
@@ -38,7 +39,7 @@ func (repository *credentialsRepositoryImpl) Save(ctx context.Context, credentia
 	log.Info("saving credentials data into the cache")
 	if err := repository.cache.Save(spanContext, credentials); err != nil {
 		log.Error("unable to insert credentials in cache", logging.Error(err))
-		span.SetAttributes(attribute.String("err", err.Error()))
+		tracing.SetSpanError(span, err)
 	}
 
 	log.Info("credentials were saved to the cache")

@@ -6,6 +6,7 @@ import (
 	"github.com/upassed/upassed-authentication-service/internal/handling"
 	logging "github.com/upassed/upassed-authentication-service/internal/logger"
 	domain "github.com/upassed/upassed-authentication-service/internal/repository/model"
+	"github.com/upassed/upassed-authentication-service/internal/tracing"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"google.golang.org/grpc/codes"
@@ -41,12 +42,12 @@ func (repository *credentialsRepositoryImpl) FindByUsername(ctx context.Context,
 	if err := searchResult.Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error("credentials was not found in the database", logging.Error(err))
-			span.SetAttributes(attribute.String("err", err.Error()))
+			tracing.SetSpanError(span, err)
 			return nil, handling.New(ErrCredentialsNotFoundByUsername.Error(), codes.NotFound)
 		}
 
 		log.Error("error while searching credentials in the database", logging.Error(err))
-		span.SetAttributes(attribute.String("err", err.Error()))
+		tracing.SetSpanError(span, err)
 		return nil, handling.New(errSearchingCredentialsByUsername.Error(), codes.Internal)
 	}
 
@@ -54,7 +55,7 @@ func (repository *credentialsRepositoryImpl) FindByUsername(ctx context.Context,
 	log.Info("saving credentials to cache")
 	if err := repository.cache.Save(spanContext, &foundCredentials); err != nil {
 		log.Error("error while saving credentials to cache", logging.Error(err))
-		span.SetAttributes(attribute.String("err", err.Error()))
+		tracing.SetSpanError(span, err)
 	}
 
 	log.Info("credentials were successfully saved to the cache")

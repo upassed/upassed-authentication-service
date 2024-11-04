@@ -9,8 +9,8 @@ import (
 	libjwt "github.com/upassed/upassed-authentication-service/internal/jwt"
 	logging "github.com/upassed/upassed-authentication-service/internal/logger"
 	business "github.com/upassed/upassed-authentication-service/internal/service/model"
+	"github.com/upassed/upassed-authentication-service/internal/tracing"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"google.golang.org/grpc/codes"
 )
 
@@ -33,34 +33,34 @@ func (service *tokenServiceImpl) Validate(ctx context.Context, request *business
 		parsedToken, err := service.parseToken(request.AccessToken)
 		if err != nil {
 			log.Error("unable to parse refresh token", logging.Error(err))
-			span.SetAttributes(attribute.String("err", ErrParsingToken.Error()))
+			tracing.SetSpanError(span, ErrParsingToken)
 			return nil, ErrParsingToken
 		}
 
 		if !parsedToken.Valid {
 			log.Error("refresh token is invalid")
-			span.SetAttributes(attribute.String("err", ErrTokenInvalid.Error()))
+			tracing.SetSpanError(span, ErrTokenInvalid)
 			return nil, ErrTokenInvalid
 		}
 
 		claims, ok := parsedToken.Claims.(jwt.MapClaims)
 		if !ok {
 			log.Error("unable to extract map claims from refresh token")
-			span.SetAttributes(attribute.String("err", errExtractingTokenClaims.Error()))
+			tracing.SetSpanError(span, errExtractingTokenClaims)
 			return nil, errExtractingTokenClaims
 		}
 
 		username, ok := claims[libjwt.UsernameKey].(string)
 		if !ok {
 			log.Error("username key is not present in refresh token claims")
-			span.SetAttributes(attribute.String("err", errUsernameClaimNotPresent.Error()))
+			tracing.SetSpanError(span, errUsernameClaimNotPresent)
 			return nil, errUsernameClaimNotPresent
 		}
 
 		foundCredentials, err := service.credentialsRepository.FindByUsername(ctx, username)
 		if err != nil {
 			log.Error("error while finding credentials by username")
-			span.SetAttributes(attribute.String("err", err.Error()))
+			tracing.SetSpanError(span, err)
 			return nil, err
 		}
 
@@ -74,12 +74,12 @@ func (service *tokenServiceImpl) Validate(ctx context.Context, request *business
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			log.Error("validating token deadline exceeded")
-			span.SetAttributes(attribute.String("err", err.Error()))
+			tracing.SetSpanError(span, err)
 			return nil, handling.Wrap(errValidatingTokenDeadlineExceeded, handling.WithCode(codes.DeadlineExceeded))
 		}
 
 		log.Error("error while validating access token", logging.Error(err))
-		span.SetAttributes(attribute.String("err", err.Error()))
+		tracing.SetSpanError(span, err)
 		return nil, handling.Process(err)
 	}
 

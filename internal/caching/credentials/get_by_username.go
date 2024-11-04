@@ -8,6 +8,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	logging "github.com/upassed/upassed-authentication-service/internal/logger"
 	domain "github.com/upassed/upassed-authentication-service/internal/repository/model"
+	"github.com/upassed/upassed-authentication-service/internal/tracing"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 )
@@ -34,12 +35,12 @@ func (client *RedisClient) GetByUsername(ctx context.Context, username string) (
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			log.Error("credentials by username was not found in cache")
-			span.SetAttributes(attribute.String("err", err.Error()))
+			tracing.SetSpanError(span, err)
 			return nil, ErrCredentialsIsNotPresentInCache
 		}
 
 		log.Error("error while fetching credentials by username from cache", logging.Error(err))
-		span.SetAttributes(attribute.String("err", err.Error()))
+		tracing.SetSpanError(span, err)
 		return nil, errFetchingCredentialsFromCache
 	}
 
@@ -47,7 +48,7 @@ func (client *RedisClient) GetByUsername(ctx context.Context, username string) (
 	var credentials domain.Credentials
 	if err := json.Unmarshal([]byte(credentialsData), &credentials); err != nil {
 		log.Error("error while unmarshalling credentials data to json", logging.Error(err))
-		span.SetAttributes(attribute.String("err", err.Error()))
+		tracing.SetSpanError(span, err)
 		return nil, errUnmarshallingCredentialsDataToJson
 	}
 

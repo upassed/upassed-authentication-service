@@ -4,7 +4,8 @@ import (
 	"context"
 	"github.com/google/uuid"
 	logging "github.com/upassed/upassed-authentication-service/internal/logger"
-	"github.com/upassed/upassed-authentication-service/internal/middleware"
+	"github.com/upassed/upassed-authentication-service/internal/middleware/requestid"
+	"github.com/upassed/upassed-authentication-service/internal/tracing"
 	"github.com/wagslane/go-rabbitmq"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -14,7 +15,7 @@ import (
 func (client *rabbitClient) CreateQueueConsumer(log *slog.Logger) func(d rabbitmq.Delivery) rabbitmq.Action {
 	return func(delivery rabbitmq.Delivery) rabbitmq.Action {
 		requestID := uuid.New().String()
-		ctx := context.WithValue(context.Background(), middleware.RequestIDKey, requestID)
+		ctx := context.WithValue(context.Background(), requestid.ContextKey, requestID)
 
 		log = logging.Wrap(log,
 			logging.WithOp(client.CreateQueueConsumer),
@@ -23,14 +24,14 @@ func (client *rabbitClient) CreateQueueConsumer(log *slog.Logger) func(d rabbitm
 
 		log.Info("consumed credentials create message", slog.String("messageBody", string(delivery.Body)))
 		spanContext, span := otel.Tracer(client.cfg.Tracing.CredentialsTracerName).Start(ctx, "credentials#Create")
-		span.SetAttributes(attribute.String(string(middleware.RequestIDKey), middleware.GetRequestIDFromContext(ctx)))
+		span.SetAttributes(attribute.String(string(requestid.ContextKey), requestid.GetRequestIDFromContext(ctx)))
 		defer span.End()
 
 		log.Info("converting message body to credentials create request")
 		request, err := ConvertToCredentialsCreateRequest(delivery.Body)
 		if err != nil {
 			log.Error("error parsing message body to json", logging.Error(err))
-			span.SetAttributes(attribute.String("err", err.Error()))
+			tracing.SetSpanError(span, err)
 			return rabbitmq.NackDiscard
 		}
 
@@ -38,7 +39,7 @@ func (client *rabbitClient) CreateQueueConsumer(log *slog.Logger) func(d rabbitm
 		log.Info("validating the credentials create request")
 		if err := request.Validate(); err != nil {
 			log.Error("request is invalid", logging.Error(err))
-			span.SetAttributes(attribute.String("err", err.Error()))
+			tracing.SetSpanError(span, err)
 			return rabbitmq.NackDiscard
 		}
 
@@ -46,7 +47,7 @@ func (client *rabbitClient) CreateQueueConsumer(log *slog.Logger) func(d rabbitm
 		response, err := client.service.Create(spanContext, ConvertToCredentials(request))
 		if err != nil {
 			log.Error("error while creating credentials", logging.Error(err))
-			span.SetAttributes(attribute.String("err", err.Error()))
+			tracing.SetSpanError(span, err)
 			return rabbitmq.NackDiscard
 		}
 

@@ -7,6 +7,7 @@ import (
 	"github.com/upassed/upassed-authentication-service/internal/handling"
 	logging "github.com/upassed/upassed-authentication-service/internal/logger"
 	business "github.com/upassed/upassed-authentication-service/internal/service/model"
+	"github.com/upassed/upassed-authentication-service/internal/tracing"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"google.golang.org/grpc/codes"
@@ -35,13 +36,13 @@ func (service *credentialsServiceImpl) Create(ctx context.Context, credentials *
 		duplicateExists, err := service.repository.CheckDuplicatesExists(ctx, credentials.Username)
 		if err != nil {
 			log.Error("error while checking credentials duplicates", logging.Error(err))
-			span.SetAttributes(attribute.String("err", err.Error()))
+			tracing.SetSpanError(span, err)
 			return nil, err
 		}
 
 		if duplicateExists {
 			log.Error("credentials with this username already exists")
-			span.SetAttributes(attribute.String("err", "credentials duplicate found"))
+			tracing.SetSpanError(span, errors.New("credentials duplicate found"))
 			return nil, handling.Wrap(errors.New("credentials duplicate found"), handling.WithCode(codes.AlreadyExists))
 		}
 
@@ -49,14 +50,14 @@ func (service *credentialsServiceImpl) Create(ctx context.Context, credentials *
 		domainCredentials, err := ConvertToDomainCredentials(credentials)
 		if err != nil {
 			log.Error("unable to convert to domain credentials", logging.Error(err))
-			span.SetAttributes(attribute.String("err", err.Error()))
+			tracing.SetSpanError(span, err)
 			return nil, handling.Wrap(errors.New("error generating password hash"), handling.WithCode(codes.Internal))
 		}
 
 		log.Info("saving credentials to the database")
 		if err := service.repository.Save(ctx, domainCredentials); err != nil {
 			log.Error("error while saving credentials to a database", logging.Error(err))
-			span.SetAttributes(attribute.String("err", err.Error()))
+			tracing.SetSpanError(span, err)
 			return nil, handling.Process(err)
 		}
 
@@ -69,12 +70,12 @@ func (service *credentialsServiceImpl) Create(ctx context.Context, credentials *
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			log.Error("credentials creating deadline exceeded")
-			span.SetAttributes(attribute.String("err", err.Error()))
+			tracing.SetSpanError(span, err)
 			return nil, handling.Wrap(ErrCreateCredentialsDeadlineExceeded, handling.WithCode(codes.DeadlineExceeded))
 		}
 
 		log.Error("error while creating credentials", logging.Error(err))
-		span.SetAttributes(attribute.String("err", err.Error()))
+		tracing.SetSpanError(span, err)
 		return nil, handling.Process(err)
 	}
 

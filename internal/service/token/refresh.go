@@ -9,8 +9,8 @@ import (
 	libjwt "github.com/upassed/upassed-authentication-service/internal/jwt"
 	logging "github.com/upassed/upassed-authentication-service/internal/logger"
 	business "github.com/upassed/upassed-authentication-service/internal/service/model"
+	"github.com/upassed/upassed-authentication-service/internal/tracing"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"google.golang.org/grpc/codes"
 	"log/slog"
 )
@@ -34,27 +34,27 @@ func (service *tokenServiceImpl) Refresh(ctx context.Context, request *business.
 		parsedToken, err := service.parseToken(request.RefreshToken)
 		if err != nil {
 			log.Error("unable to parse refresh token", logging.Error(err))
-			span.SetAttributes(attribute.String("err", ErrParsingToken.Error()))
+			tracing.SetSpanError(span, ErrParsingToken)
 			return "", ErrParsingToken
 		}
 
 		if !parsedToken.Valid {
 			log.Error("refresh token is invalid")
-			span.SetAttributes(attribute.String("err", ErrTokenInvalid.Error()))
+			tracing.SetSpanError(span, ErrTokenInvalid)
 			return "", ErrTokenInvalid
 		}
 
 		claims, ok := parsedToken.Claims.(jwt.MapClaims)
 		if !ok {
 			log.Error("unable to extract map claims from refresh token")
-			span.SetAttributes(attribute.String("err", errExtractingTokenClaims.Error()))
+			tracing.SetSpanError(span, errExtractingTokenClaims)
 			return "", errExtractingTokenClaims
 		}
 
 		username, ok := claims[libjwt.UsernameKey].(string)
 		if !ok {
 			log.Error("username key is not present in refresh token claims")
-			span.SetAttributes(attribute.String("err", errUsernameClaimNotPresent.Error()))
+			tracing.SetSpanError(span, errUsernameClaimNotPresent)
 			return "", errUsernameClaimNotPresent
 		}
 
@@ -62,7 +62,7 @@ func (service *tokenServiceImpl) Refresh(ctx context.Context, request *business.
 		tokens, err := service.tokenGenerator.GenerateFor(username)
 		if err != nil {
 			log.Error("error generating new tokens", logging.Error(err))
-			span.SetAttributes(attribute.String("err", ErrGeneratingTokens.Error()))
+			tracing.SetSpanError(span, ErrGeneratingTokens)
 			return "", ErrGeneratingTokens
 		}
 
@@ -73,12 +73,12 @@ func (service *tokenServiceImpl) Refresh(ctx context.Context, request *business.
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			log.Error("extracting username deadline exceeded")
-			span.SetAttributes(attribute.String("err", err.Error()))
+			tracing.SetSpanError(span, err)
 			return nil, handling.Wrap(errExtractingUsernameDeadlineExceeded, handling.WithCode(codes.DeadlineExceeded))
 		}
 
 		log.Error("error while extracting username from refresh token", logging.Error(err))
-		span.SetAttributes(attribute.String("err", err.Error()))
+		tracing.SetSpanError(span, err)
 		return nil, handling.Process(err)
 	}
 

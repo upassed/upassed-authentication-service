@@ -6,6 +6,7 @@ import (
 	"github.com/upassed/upassed-authentication-service/internal/handling"
 	logging "github.com/upassed/upassed-authentication-service/internal/logger"
 	domain "github.com/upassed/upassed-authentication-service/internal/repository/model"
+	"github.com/upassed/upassed-authentication-service/internal/tracing"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"google.golang.org/grpc/codes"
@@ -39,7 +40,7 @@ func (repository *credentialsRepositoryImpl) CheckDuplicatesExists(ctx context.C
 	countResult := repository.db.WithContext(ctx).Model(&domain.Credentials{}).Where("username = ?", username).Count(&credentialsCount)
 	if err := countResult.Error; err != nil {
 		log.Error("error while counting credentials with username in database")
-		span.SetAttributes(attribute.String("err", err.Error()))
+		tracing.SetSpanError(span, err)
 		return false, handling.New(errCountingDuplicatesCredentials.Error(), codes.Internal)
 	}
 

@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/upassed/upassed-authentication-service/internal/middleware"
+	"github.com/upassed/upassed-authentication-service/internal/middleware/requestid"
 	"io"
 	"log/slog"
 	"os"
@@ -77,7 +77,7 @@ func Wrap(log *slog.Logger, options ...Option) *slog.Logger {
 	}
 
 	if opts.ctx != nil {
-		log = log.With(slog.String(string(middleware.RequestIDKey), middleware.GetRequestIDFromContext(opts.ctx)))
+		log = log.With(slog.String(string(requestid.ContextKey), requestid.GetRequestIDFromContext(opts.ctx)))
 	}
 
 	if len(opts.attributes) != 0 {

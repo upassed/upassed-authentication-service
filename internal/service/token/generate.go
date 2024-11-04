@@ -8,6 +8,7 @@ import (
 	logging "github.com/upassed/upassed-authentication-service/internal/logger"
 	domain "github.com/upassed/upassed-authentication-service/internal/repository/model"
 	business "github.com/upassed/upassed-authentication-service/internal/service/model"
+	"github.com/upassed/upassed-authentication-service/internal/tracing"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"golang.org/x/crypto/bcrypt"
@@ -37,7 +38,7 @@ func (service *tokenServiceImpl) Generate(ctx context.Context, request *business
 		credentialsFromDatabase, err := service.credentialsRepository.FindByUsername(ctx, request.Username)
 		if err != nil {
 			log.Error("error while finding credentials by username")
-			span.SetAttributes(attribute.String("err", err.Error()))
+			tracing.SetSpanError(span, err)
 			return nil, err
 		}
 
@@ -48,25 +49,25 @@ func (service *tokenServiceImpl) Generate(ctx context.Context, request *business
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			log.Error("credentials finding deadline exceeded")
-			span.SetAttributes(attribute.String("err", err.Error()))
+			tracing.SetSpanError(span, err)
 			return nil, handling.Wrap(errFindingCredentialsByUsernameDeadlineExceeded, handling.WithCode(codes.DeadlineExceeded))
 		}
 
 		log.Error("error while finding credentials", logging.Error(err))
-		span.SetAttributes(attribute.String("err", err.Error()))
+		tracing.SetSpanError(span, err)
 		return nil, handling.Process(err)
 	}
 
 	if err := bcrypt.CompareHashAndPassword(foundCredentials.PasswordHash, []byte(request.Password)); err != nil {
 		log.Error("password does not match with hash")
-		span.SetAttributes(attribute.String("err", ErrPasswordHashNotMatch.Error()))
+		tracing.SetSpanError(span, ErrPasswordHashNotMatch)
 		return nil, handling.Wrap(ErrPasswordHashNotMatch, handling.WithCode(codes.Internal))
 	}
 
 	tokens, err := service.tokenGenerator.GenerateFor(request.Username)
 	if err != nil {
 		log.Error("error while generating tokens", logging.Error(err))
-		span.SetAttributes(attribute.String("err", ErrGeneratingTokens.Error()))
+		tracing.SetSpanError(span, ErrGeneratingTokens)
 		return nil, handling.Wrap(ErrGeneratingTokens, handling.WithCode(codes.Internal))
 	}
 

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	logging "github.com/upassed/upassed-authentication-service/internal/logger"
 	domain "github.com/upassed/upassed-authentication-service/internal/repository/model"
+	"github.com/upassed/upassed-authentication-service/internal/tracing"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 )
@@ -31,14 +32,14 @@ func (client *RedisClient) Save(ctx context.Context, credentials *domain.Credent
 	jsonCredentialsData, err := json.Marshal(credentials)
 	if err != nil {
 		log.Error("unable to marshall credentials data to json format")
-		span.SetAttributes(attribute.String("err", err.Error()))
+		tracing.SetSpanError(span, err)
 		return errMarshallingCredentialsData
 	}
 
 	log.Info("saving credentials data to the cache")
 	if err := client.client.Set(ctx, fmt.Sprintf(keyFormat, credentials.Username), jsonCredentialsData, client.cfg.GetRedisEntityTTL()).Err(); err != nil {
 		log.Error("error while saving credentials data to the cache", logging.Error(err))
-		span.SetAttributes(attribute.String("err", err.Error()))
+		tracing.SetSpanError(span, err)
 		return errSavingCredentialsDataToCache
 	}
 

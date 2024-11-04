@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"github.com/upassed/upassed-authentication-service/internal/config"
 	logging "github.com/upassed/upassed-authentication-service/internal/logger"
-	"github.com/upassed/upassed-authentication-service/internal/middleware"
+	loggingMW "github.com/upassed/upassed-authentication-service/internal/middleware/logging"
+	"github.com/upassed/upassed-authentication-service/internal/middleware/recovery"
+	"github.com/upassed/upassed-authentication-service/internal/middleware/requestid"
 	"github.com/upassed/upassed-authentication-service/internal/server/token"
 	tokenSvc "github.com/upassed/upassed-authentication-service/internal/service/token"
 	"google.golang.org/grpc"
@@ -33,9 +35,9 @@ type AppServerCreateParams struct {
 func New(params AppServerCreateParams) *AppServer {
 	server := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
-			middleware.RequestIDMiddlewareInterceptor(),
-			middleware.PanicRecoveryMiddlewareInterceptor(params.Log),
-			middleware.LoggingMiddlewareInterceptor(params.Log),
+			requestid.MiddlewareInterceptor(),
+			recovery.MiddlewareInterceptor(params.Log),
+			loggingMW.MiddlewareInterceptor(params.Log),
 		),
 	)
 
