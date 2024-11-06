@@ -70,10 +70,10 @@ func TestSaveGroup_HappyPath(t *testing.T) {
 	credentialsToSave := util.RandomDomainCredentials()
 	ctx := context.Background()
 	err := redisClient.Save(ctx, credentialsToSave)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	credentialsFromCache, err := redisClient.GetByUsername(ctx, credentialsToSave.Username)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, *credentialsToSave, *credentialsFromCache)
 }
@@ -81,7 +81,7 @@ func TestSaveGroup_HappyPath(t *testing.T) {
 func TestFindGroupByID_GroupNotFound(t *testing.T) {
 	credentialsUsername := gofakeit.Username()
 	foundCredentials, err := redisClient.GetByUsername(context.Background(), credentialsUsername)
-	require.NotNil(t, err)
+	require.Error(t, err)
 
 	assert.ErrorIs(t, err, credentials.ErrCredentialsIsNotPresentInCache)
 	assert.Nil(t, foundCredentials)

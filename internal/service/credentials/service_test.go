@@ -70,7 +70,7 @@ func TestCreate_ErrorCheckingDuplicateExists(t *testing.T) {
 
 	service := credentials.New(cfg, logging.New(config.EnvTesting), credentialsRepository)
 	_, err := service.Create(context.Background(), credentialsToCreate)
-	require.NotNil(t, err)
+	require.Error(t, err)
 
 	convertedError := status.Convert(err)
 	assert.Equal(t, expectedRepositoryError.Error(), convertedError.Message())
@@ -89,7 +89,7 @@ func TestCreate_DuplicateExists(t *testing.T) {
 
 	service := credentials.New(cfg, logging.New(config.EnvTesting), credentialsRepository)
 	_, err := service.Create(context.Background(), credentialsToCreate)
-	require.NotNil(t, err)
+	require.Error(t, err)
 
 	convertedError := status.Convert(err)
 	assert.Equal(t, "credentials duplicate found", convertedError.Message())
@@ -115,7 +115,7 @@ func TestCreate_ErrorSavingCredentialsToDatabase(t *testing.T) {
 
 	service := credentials.New(cfg, logging.New(config.EnvTesting), credentialsRepository)
 	_, err := service.Create(context.Background(), credentialsToCreate)
-	require.NotNil(t, err)
+	require.Error(t, err)
 
 	convertedError := status.Convert(err)
 	assert.Equal(t, expectedRepositoryError.Error(), convertedError.Message())
@@ -142,7 +142,7 @@ func TestCreate_DeadlineExceeded(t *testing.T) {
 
 	service := credentials.New(cfg, logging.New(config.EnvTesting), credentialsRepository)
 	_, err := service.Create(context.Background(), credentialsToCreate)
-	require.NotNil(t, err)
+	require.Error(t, err)
 
 	convertedError := status.Convert(err)
 	assert.Equal(t, credentials.ErrCreateCredentialsDeadlineExceeded.Error(), convertedError.Message())
@@ -168,7 +168,7 @@ func TestCreate_HappyPath(t *testing.T) {
 
 	service := credentials.New(cfg, logging.New(config.EnvTesting), credentialsRepository)
 	response, err := service.Create(context.Background(), credentialsToCreate)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, credentialsToCreate.ID, response.CreatedCredentialsID)
 }

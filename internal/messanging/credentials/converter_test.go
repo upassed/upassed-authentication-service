@@ -12,16 +12,16 @@ import (
 func TestConvertToStudentCreateRequest_InvalidBytes(t *testing.T) {
 	invalidBytes := make([]byte, 10)
 	_, err := credentials.ConvertToCredentialsCreateRequest(invalidBytes)
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestConvertToStudentCreateRequest_ValidBytes(t *testing.T) {
 	initialRequest := util.RandomEvenCredentialsCreateRequest()
 	initialRequestBytes, err := json.Marshal(initialRequest)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	convertedRequest, err := credentials.ConvertToCredentialsCreateRequest(initialRequestBytes)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, initialRequest, convertedRequest)
 }

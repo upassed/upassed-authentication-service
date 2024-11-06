@@ -109,7 +109,7 @@ func TestGenerateToken_InvalidRequest(t *testing.T) {
 	request.Username = "_invalid_"
 
 	_, err := tokenClient.Generate(context.Background(), request)
-	require.NotNil(t, err)
+	require.Error(t, err)
 
 	convertedError := status.Convert(err)
 	assert.Equal(t, codes.InvalidArgument, convertedError.Code())
@@ -124,7 +124,7 @@ func TestGenerateToken_ServiceError(t *testing.T) {
 	tokenSvc.On("Generate", mock.Anything, mock.Anything).Return(nil, expectedServiceError)
 
 	_, err := tokenClient.Generate(context.Background(), request)
-	require.NotNil(t, err)
+	require.Error(t, err)
 
 	convertedError := status.Convert(err)
 	assert.Equal(t, expectedServiceError.Error(), convertedError.Message())
@@ -139,7 +139,7 @@ func TestGenerateToken_HappyPath(t *testing.T) {
 	tokenSvc.On("Generate", mock.Anything, mock.Anything).Return(expectedServiceResponse, nil)
 
 	response, err := tokenClient.Generate(context.Background(), request)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, expectedServiceResponse.AccessToken, response.GetAccessToken())
 	assert.Equal(t, expectedServiceResponse.RefreshToken, response.GetRefreshToken())
@@ -154,7 +154,7 @@ func TestRefreshToken_ServiceError(t *testing.T) {
 	tokenSvc.On("Refresh", mock.Anything, mock.Anything).Return(nil, expectedServiceError)
 
 	_, err := tokenClient.Refresh(context.Background(), request)
-	require.NotNil(t, err)
+	require.Error(t, err)
 
 	convertedError := status.Convert(err)
 	assert.Equal(t, expectedServiceError.Error(), convertedError.Message())
@@ -169,7 +169,7 @@ func TestRefreshToken_HappyPath(t *testing.T) {
 	tokenSvc.On("Refresh", mock.Anything, mock.Anything).Return(expectedServiceResponse, nil)
 
 	response, err := tokenClient.Refresh(context.Background(), request)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, expectedServiceResponse.NewAccessToken, response.GetNewAccessToken())
 
@@ -183,7 +183,7 @@ func TestValidateToken_ServiceError(t *testing.T) {
 	tokenSvc.On("Validate", mock.Anything, mock.Anything).Return(nil, expectedServiceError)
 
 	_, err := tokenClient.Validate(context.Background(), request)
-	require.NotNil(t, err)
+	require.Error(t, err)
 
 	convertedError := status.Convert(err)
 	assert.Equal(t, expectedServiceError.Error(), convertedError.Message())
@@ -198,7 +198,7 @@ func TestValidateToken_HappyPath(t *testing.T) {
 	tokenSvc.On("Validate", mock.Anything, mock.Anything).Return(expectedServiceResponse, nil)
 
 	response, err := tokenClient.Validate(context.Background(), request)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, expectedServiceResponse.Username, response.Username)
 	assert.Equal(t, string(expectedServiceResponse.AccountType), response.GetAccountType())

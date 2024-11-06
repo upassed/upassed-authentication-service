@@ -12,7 +12,7 @@ func TestCredentialsCreateRequestUsernameValidation_Invalid(t *testing.T) {
 	request.Username = "_invalid_"
 
 	err := request.Validate()
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestCredentialsCreateRequestUsernameValidation_TooLong(t *testing.T) {
@@ -20,7 +20,7 @@ func TestCredentialsCreateRequestUsernameValidation_TooLong(t *testing.T) {
 	request.Username = gofakeit.LoremIpsumSentence(50)
 
 	err := request.Validate()
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestCredentialsCreateRequestUsernameValidation_TooShort(t *testing.T) {
@@ -28,7 +28,7 @@ func TestCredentialsCreateRequestUsernameValidation_TooShort(t *testing.T) {
 	request.Username = "1"
 
 	err := request.Validate()
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestCredentialsCreateRequestUsernameValidation_Empty(t *testing.T) {
@@ -36,14 +36,14 @@ func TestCredentialsCreateRequestUsernameValidation_Empty(t *testing.T) {
 	request.Username = ""
 
 	err := request.Validate()
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestCredentialsCreateRequestUsernameValidation_Valid(t *testing.T) {
 	request := util.RandomEvenCredentialsCreateRequest()
 
 	err := request.Validate()
-	require.Nil(t, err)
+	require.NoError(t, err)
 }
 
 func TestCredentialsCreateRequestPasswordValidation_Empty(t *testing.T) {
@@ -51,7 +51,7 @@ func TestCredentialsCreateRequestPasswordValidation_Empty(t *testing.T) {
 	request.Password = ""
 
 	err := request.Validate()
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestCredentialsCreateRequestPasswordValidation_TooLong(t *testing.T) {
@@ -59,7 +59,7 @@ func TestCredentialsCreateRequestPasswordValidation_TooLong(t *testing.T) {
 	request.Password = gofakeit.LoremIpsumSentence(50)
 
 	err := request.Validate()
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestCredentialsCreateRequestPasswordValidation_TooShort(t *testing.T) {
@@ -67,7 +67,7 @@ func TestCredentialsCreateRequestPasswordValidation_TooShort(t *testing.T) {
 	request.Password = "aQ1!,"
 
 	err := request.Validate()
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestCredentialsCreateRequestPasswordValidation_NoUpper(t *testing.T) {
@@ -75,7 +75,7 @@ func TestCredentialsCreateRequestPasswordValidation_NoUpper(t *testing.T) {
 	request.Password = "heavy_metal11!"
 
 	err := request.Validate()
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestCredentialsCreateRequestPasswordValidation_NoLower(t *testing.T) {
@@ -83,7 +83,7 @@ func TestCredentialsCreateRequestPasswordValidation_NoLower(t *testing.T) {
 	request.Password = "HEAVY_METAL11!"
 
 	err := request.Validate()
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestCredentialsCreateRequestPasswordValidation_NoDigit(t *testing.T) {
@@ -91,7 +91,7 @@ func TestCredentialsCreateRequestPasswordValidation_NoDigit(t *testing.T) {
 	request.Password = "HEAVY_metal!!"
 
 	err := request.Validate()
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestCredentialsCreateRequestPasswordValidation_NoPunctual(t *testing.T) {
@@ -99,7 +99,7 @@ func TestCredentialsCreateRequestPasswordValidation_NoPunctual(t *testing.T) {
 	request.Password = "heavyMETAL11"
 
 	err := request.Validate()
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestCredentialsCreateRequestPasswordValidation_InvalidAccountType(t *testing.T) {
@@ -108,7 +108,7 @@ func TestCredentialsCreateRequestPasswordValidation_InvalidAccountType(t *testin
 	request.AccountType = "invalid"
 
 	err := request.Validate()
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestCredentialsCreateRequestPasswordValidation_Valid(t *testing.T) {
@@ -116,5 +116,5 @@ func TestCredentialsCreateRequestPasswordValidation_Valid(t *testing.T) {
 	request.Password = "heavy_METAL11!!"
 
 	err := request.Validate()
-	require.Nil(t, err)
+	require.NoError(t, err)
 }

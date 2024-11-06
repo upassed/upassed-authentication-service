@@ -96,18 +96,18 @@ func TestCheckDuplicates_DuplicatesNotExists(t *testing.T) {
 	username := gofakeit.Username()
 	result, err := credentialsRepository.CheckDuplicatesExists(context.Background(), username)
 
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, false, result)
 }
 
 func TestCheckDuplicates_DuplicatesExists(t *testing.T) {
 	credentialsToSave := util.RandomDomainCredentials()
 	err := credentialsRepository.Save(context.Background(), credentialsToSave)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	result, err := credentialsRepository.CheckDuplicatesExists(context.Background(), credentialsToSave.Username)
 
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, true, result)
 }
 
@@ -125,25 +125,25 @@ func TestFindByUsername_UsernameNotFound(t *testing.T) {
 func TestFindByUsername_UsernameFound(t *testing.T) {
 	credentialsToSave := util.RandomDomainCredentials()
 	err := credentialsRepository.Save(context.Background(), credentialsToSave)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	result, err := credentialsRepository.FindByUsername(context.Background(), credentialsToSave.Username)
 
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, *credentialsToSave, *result)
 }
 
 func TestSave_HappyPath(t *testing.T) {
 	credentialsToSave := util.RandomDomainCredentials()
 	foundCredentials, err := credentialsRepository.FindByUsername(context.Background(), credentialsToSave.Username)
-	require.NotNil(t, err)
+	require.Error(t, err)
 	assert.Nil(t, foundCredentials)
 
 	err = credentialsRepository.Save(context.Background(), credentialsToSave)
 
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	foundCredentials, err = credentialsRepository.FindByUsername(context.Background(), credentialsToSave.Username)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, *credentialsToSave, *foundCredentials)
 }

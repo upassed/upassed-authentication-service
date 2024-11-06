@@ -12,12 +12,12 @@ import (
 func TestConvertToDomainCredentials_HappyPath(t *testing.T) {
 	credentialsToConvert := util.RandomBusinessCredentials()
 	convertedCredentials, err := credentials.ConvertToDomainCredentials(credentialsToConvert)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, credentialsToConvert.ID, convertedCredentials.ID)
 	assert.Equal(t, credentialsToConvert.Username, convertedCredentials.Username)
 	assert.Equal(t, string(credentialsToConvert.AccountType), string(convertedCredentials.AccountType))
 
 	err = bcrypt.CompareHashAndPassword(convertedCredentials.PasswordHash, []byte(credentialsToConvert.Password))
-	require.Nil(t, err)
+	require.NoError(t, err)
 }

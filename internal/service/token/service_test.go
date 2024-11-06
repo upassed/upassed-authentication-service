@@ -86,7 +86,7 @@ func TestCreate_ErrorFindingCredentialsByUsername(t *testing.T) {
 	logger := logging.New(config.EnvTesting)
 	service := token.New(cfg, logger, new(mockTokenGenerator), credentialsRepository)
 	_, err := service.Generate(context.Background(), request)
-	require.NotNil(t, err)
+	require.Error(t, err)
 
 	convertedError := status.Convert(err)
 	assert.Equal(t, expectedRepositoryError.Error(), convertedError.Message())
@@ -102,7 +102,7 @@ func TestCreate_PasswordHashNotMatch(t *testing.T) {
 	logger := logging.New(config.EnvTesting)
 	service := token.New(cfg, logger, new(mockTokenGenerator), credentialsRepository)
 	_, err := service.Generate(context.Background(), request)
-	require.NotNil(t, err)
+	require.Error(t, err)
 
 	convertedError := status.Convert(err)
 	assert.Equal(t, token.ErrPasswordHashNotMatch.Error(), convertedError.Message())
@@ -129,7 +129,7 @@ func TestCreate_ErrorGeneratingTokens(t *testing.T) {
 	logger := logging.New(config.EnvTesting)
 	service := token.New(cfg, logger, tokenGenerator, credentialsRepository)
 	_, err = service.Generate(context.Background(), request)
-	require.NotNil(t, err)
+	require.Error(t, err)
 
 	convertedError := status.Convert(err)
 	assert.Equal(t, token.ErrGeneratingTokens.Error(), convertedError.Message())
