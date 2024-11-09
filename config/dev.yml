@@ -1,0 +1,44 @@
+env: "dev"
+application_name: upassed-account-service
+storage:
+    host: ${POSTGRES_HOST}
+    port: ${POSTGRES_PORT}
+    database_name: ${POSTGRES_DATABASE_NAME}
+    user: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+grpc_server:
+    port: ${GRPC_SERVER_PORT}
+    timeout: ${GRPC_SERVER_TIMEOUT}
+migrations:
+    migrations_path: ${MIGRATIONS_PATH}
+    migrations_table_name: ${MIGRATIONS_TABLE_NAME}
+timeouts:
+    endpoint_execution_timeout_ms: ${ENDPOINT_EXECUTION_TIMEOUT_MS}
+jwt:
+    access_token_ttl: ${JWT_ACCESS_TOKEN_TTL}
+    refresh_token_ttl: ${JWT_REFRESH_TOKEN_TTL}
+    secret: ${JWT_SECRET}
+tracing:
+    host: ${JAEGER_HOST}
+    port: ${JAEGER_PORT}
+    credentials_tracer_name: ${CREDENTIALS_TRACER_NAME}
+    token_tracer_name: ${TOKEN_TRACER_NAME}
+redis:
+    user: ${REDIS_USER}
+    password: ${REDIS_PASSWORD}
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT}
+    database_number: ${REDIS_DATABASE_NUMBER}
+    entity_ttl: ${REDIS_ENTITY_TTL}
+rabbit:
+    user: ${RABBIT_USER}
+    password: ${RABBIT_PASSWORD}
+    host: ${RABBIT_HOST}
+    port: ${RABBIT_PORT}
+    exchange:
+        name: ${RABBIT_EXCHANGE_NAME}
+        type: ${RABBIT_EXCHANGE_TYPE}
+    queues:
+        credentials_create:
+            name: ${RABBIT_CREDENTIALS_CREATE_QUEUE_NAME}
+            routing_key: ${RABBIT_CREDENTIALS_CREATE_QUEUE_ROUTING_KEY}
