@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/upassed/upassed-authentication-service/internal/middleware/requestid"
+	requestid "github.com/upassed/upassed-authentication-service/internal/middleware/common/request_id"
 	"io"
 	"log/slog"
 	"os"
