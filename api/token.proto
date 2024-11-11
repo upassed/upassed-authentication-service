@@ -37,6 +37,7 @@ message TokenValidateRequest {
 }
 
 message TokenValidateResponse {
-  string username = 1;
-  string account_type = 2;
+  string account_id = 1;
+  string username = 2;
+  string account_type = 3;
 }

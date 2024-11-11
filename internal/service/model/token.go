@@ -1,5 +1,7 @@
 package business
 
+import "github.com/google/uuid"
+
 type TokenGenerateRequest struct {
 	Username string
 	Password string
@@ -23,6 +25,7 @@ type TokenValidateRequest struct {
 }
 
 type TokenValidateResponse struct {
+	AccountID   uuid.UUID
 	Username    string
 	AccountType AccountType
 }

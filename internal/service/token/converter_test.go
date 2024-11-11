@@ -14,3 +14,12 @@ func TestConvertToBusinessTokenGenerateResponse(t *testing.T) {
 	assert.Equal(t, tokens.AccessToken, convertedResponse.AccessToken)
 	assert.Equal(t, tokens.RefreshToken, convertedResponse.RefreshToken)
 }
+
+func TestConvertToBusinessTokenValidateResponse(t *testing.T) {
+	credentials := util.RandomDomainCredentials()
+	convertedResponse := token.ConvertToBusinessTokenValidateResponse(credentials)
+
+	assert.Equal(t, credentials.ID, convertedResponse.AccountID)
+	assert.Equal(t, credentials.Username, convertedResponse.Username)
+	assert.Equal(t, string(credentials.AccountType), string(convertedResponse.AccountType))
+}

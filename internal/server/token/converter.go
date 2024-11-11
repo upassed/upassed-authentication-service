@@ -39,6 +39,7 @@ func ConvertToTokenValidateRequest(request *client.TokenValidateRequest) *busine
 
 func ConvertToTokenValidateResponse(request *business.TokenValidateResponse) *client.TokenValidateResponse {
 	return &client.TokenValidateResponse{
+		AccountId:   request.AccountID.String(),
 		Username:    request.Username,
 		AccountType: string(request.AccountType),
 	}

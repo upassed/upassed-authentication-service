@@ -300,6 +300,7 @@ func TestValidate_HappyPath(t *testing.T) {
 	}
 
 	foundCredentials := util.RandomDomainCredentials()
+	foundCredentials.Username = username
 
 	credentialsRepository := new(mockCredentialsRepository)
 	credentialsRepository.On("FindByUsername", mock.Anything, username).Return(foundCredentials, nil)
@@ -308,6 +309,7 @@ func TestValidate_HappyPath(t *testing.T) {
 	response, err := service.Validate(context.Background(), request)
 	require.NoError(t, err)
 
+	assert.Equal(t, foundCredentials.ID, response.AccountID)
 	assert.Equal(t, username, response.Username)
 	assert.Equal(t, business.AccountType(foundCredentials.AccountType), response.AccountType)
 }

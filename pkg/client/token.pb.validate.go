@@ -592,6 +592,8 @@ func (m *TokenValidateResponse) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for AccountId
+
 	// no validation rules for Username
 
 	// no validation rules for AccountType

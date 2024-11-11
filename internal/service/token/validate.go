@@ -65,10 +65,7 @@ func (service *tokenServiceImpl) Validate(ctx context.Context, request *business
 		}
 
 		log.Info("access token validated successfully")
-		return &business.TokenValidateResponse{
-			Username:    username,
-			AccountType: business.AccountType(foundCredentials.AccountType),
-		}, nil
+		return ConvertToBusinessTokenValidateResponse(foundCredentials), nil
 	})
 
 	if err != nil {
