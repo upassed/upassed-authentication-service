@@ -80,9 +80,9 @@ func RandomBusinessTokenRefreshResponse() *business.TokenRefreshResponse {
 
 func RandomBusinessTokenValidateResponse() *business.TokenValidateResponse {
 	return &business.TokenValidateResponse{
-		AccountID:   uuid.New(),
-		Username:    gofakeit.Username(),
-		AccountType: business.StudentAccountType,
+		CredentialsID: uuid.New(),
+		Username:      gofakeit.Username(),
+		AccountType:   business.StudentAccountType,
 	}
 }
 

@@ -15,8 +15,8 @@ func ConvertToBusinessTokenGenerateResponse(tokens *jwt.GeneratedTokens) *busine
 
 func ConvertToBusinessTokenValidateResponse(credentials *domain.Credentials) *business.TokenValidateResponse {
 	return &business.TokenValidateResponse{
-		AccountID:   credentials.ID,
-		Username:    credentials.Username,
-		AccountType: business.AccountType(credentials.AccountType),
+		CredentialsID: credentials.ID,
+		Username:      credentials.Username,
+		AccountType:   business.AccountType(credentials.AccountType),
 	}
 }

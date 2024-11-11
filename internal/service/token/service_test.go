@@ -309,7 +309,7 @@ func TestValidate_HappyPath(t *testing.T) {
 	response, err := service.Validate(context.Background(), request)
 	require.NoError(t, err)
 
-	assert.Equal(t, foundCredentials.ID, response.AccountID)
+	assert.Equal(t, foundCredentials.ID, response.CredentialsID)
 	assert.Equal(t, username, response.Username)
 	assert.Equal(t, business.AccountType(foundCredentials.AccountType), response.AccountType)
 }

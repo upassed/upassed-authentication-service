@@ -25,7 +25,7 @@ type TokenValidateRequest struct {
 }
 
 type TokenValidateResponse struct {
-	AccountID   uuid.UUID
-	Username    string
-	AccountType AccountType
+	CredentialsID uuid.UUID
+	Username      string
+	AccountType   AccountType
 }

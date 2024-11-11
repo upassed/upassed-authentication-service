@@ -50,5 +50,5 @@ func TestConvertToTokenAccessResponse(t *testing.T) {
 
 	assert.Equal(t, responseToConvert.Username, convertedResponse.GetUsername())
 	assert.Equal(t, string(responseToConvert.AccountType), convertedResponse.GetAccountType())
-	assert.Equal(t, responseToConvert.AccountID.String(), convertedResponse.GetAccountId())
+	assert.Equal(t, responseToConvert.CredentialsID.String(), convertedResponse.GetCredentialsId())
 }

@@ -19,7 +19,7 @@ func TestConvertToBusinessTokenValidateResponse(t *testing.T) {
 	credentials := util.RandomDomainCredentials()
 	convertedResponse := token.ConvertToBusinessTokenValidateResponse(credentials)
 
-	assert.Equal(t, credentials.ID, convertedResponse.AccountID)
+	assert.Equal(t, credentials.ID, convertedResponse.CredentialsID)
 	assert.Equal(t, credentials.Username, convertedResponse.Username)
 	assert.Equal(t, string(credentials.AccountType), string(convertedResponse.AccountType))
 }
