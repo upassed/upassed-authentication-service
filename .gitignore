@@ -29,3 +29,6 @@ go.work.sum
 
 # Idea
 .idea
+
+# Test json data for rabbitmq entities creation
+jsons

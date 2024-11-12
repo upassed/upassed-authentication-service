@@ -67,7 +67,7 @@ func (server *AppServer) Run() error {
 		return errStartingServer
 	}
 
-	log.Info("tcp server is now running")
+	log.Info("tcp server is now stopping...")
 	return nil
 }
 
