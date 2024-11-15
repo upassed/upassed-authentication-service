@@ -19,7 +19,7 @@ var (
 	errExtractingUsernameDeadlineExceeded = errors.New("extracting username from refresh token deadline exceeded")
 )
 
-func (service *tokenServiceImpl) Refresh(ctx context.Context, request *business.TokenRefreshRequest) (*business.TokenRefreshResponse, error) {
+func (service *serviceImpl) Refresh(ctx context.Context, request *business.TokenRefreshRequest) (*business.TokenRefreshResponse, error) {
 	spanContext, span := otel.Tracer(service.cfg.Tracing.TokenTracerName).Start(ctx, "tokenService#Refresh")
 	defer span.End()
 

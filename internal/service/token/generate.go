@@ -20,7 +20,7 @@ var (
 	ErrPasswordHashNotMatch                         = errors.New("password hash does not match")
 )
 
-func (service *tokenServiceImpl) Generate(ctx context.Context, request *business.TokenGenerateRequest) (*business.TokenGenerateResponse, error) {
+func (service *serviceImpl) Generate(ctx context.Context, request *business.TokenGenerateRequest) (*business.TokenGenerateResponse, error) {
 	spanContext, span := otel.Tracer(service.cfg.Tracing.TokenTracerName).Start(ctx, "tokenService#Generate")
 	span.SetAttributes(attribute.String("username", request.Username))
 	defer span.End()

@@ -16,7 +16,7 @@ var (
 	ErrSavingCredentials = errors.New("error while saving credentials")
 )
 
-func (repository *credentialsRepositoryImpl) Save(ctx context.Context, credentials *domain.Credentials) error {
+func (repository *repositoryImpl) Save(ctx context.Context, credentials *domain.Credentials) error {
 	spanContext, span := otel.Tracer(repository.cfg.Tracing.CredentialsTracerName).Start(ctx, "credentialsRepository#Save")
 	span.SetAttributes(attribute.String("username", credentials.Username))
 	defer span.End()

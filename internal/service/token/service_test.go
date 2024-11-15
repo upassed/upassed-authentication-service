@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"github.com/brianvoe/gofakeit/v7"
+	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/upassed/upassed-authentication-service/internal/config"
 	"github.com/upassed/upassed-authentication-service/internal/jwt"
@@ -15,6 +15,7 @@ import (
 	business "github.com/upassed/upassed-authentication-service/internal/service/model"
 	"github.com/upassed/upassed-authentication-service/internal/service/token"
 	"github.com/upassed/upassed-authentication-service/internal/util"
+	"github.com/upassed/upassed-authentication-service/internal/util/mocks"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -24,36 +25,11 @@ import (
 	"testing"
 )
 
-type mockCredentialsRepository struct {
-	mock.Mock
-}
-
-func (m *mockCredentialsRepository) FindByUsername(ctx context.Context, username string) (*domain.Credentials, error) {
-	args := m.Called(ctx, username)
-
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-
-	return args.Get(0).(*domain.Credentials), args.Error(1)
-}
-
-type mockTokenGenerator struct {
-	mock.Mock
-}
-
-func (m *mockTokenGenerator) GenerateFor(username string) (*jwt.GeneratedTokens, error) {
-	args := m.Called(username)
-
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-
-	return args.Get(0).(*jwt.GeneratedTokens), args.Error(1)
-}
-
 var (
-	cfg *config.Config
+	cfg            *config.Config
+	tokenGenerator *mocks.TokenGenerator
+	repository     *mocks.CredentialsRepository
+	service        token.Service
 )
 
 func TestMain(m *testing.M) {
@@ -72,6 +48,13 @@ func TestMain(m *testing.M) {
 		log.Fatal("unable to parse config: ", err)
 	}
 
+	ctrl := gomock.NewController(nil)
+	defer ctrl.Finish()
+
+	tokenGenerator = mocks.NewTokenGenerator(ctrl)
+	repository = mocks.NewCredentialsRepository(ctrl)
+	service = token.New(cfg, logging.New(config.EnvTesting), tokenGenerator, repository)
+
 	exitCode := m.Run()
 	os.Exit(exitCode)
 }
@@ -79,12 +62,11 @@ func TestMain(m *testing.M) {
 func TestCreate_ErrorFindingCredentialsByUsername(t *testing.T) {
 	request := util.RandomBusinessTokenGenerateRequest()
 
-	credentialsRepository := new(mockCredentialsRepository)
 	expectedRepositoryError := errors.New("some repo error")
-	credentialsRepository.On("FindByUsername", mock.Anything, request.Username).Return(nil, expectedRepositoryError)
+	repository.EXPECT().
+		FindByUsername(gomock.Any(), request.Username).
+		Return(nil, expectedRepositoryError)
 
-	logger := logging.New(config.EnvTesting)
-	service := token.New(cfg, logger, new(mockTokenGenerator), credentialsRepository)
 	_, err := service.Generate(context.Background(), request)
 	require.Error(t, err)
 
@@ -96,11 +78,10 @@ func TestCreate_PasswordHashNotMatch(t *testing.T) {
 	request := util.RandomBusinessTokenGenerateRequest()
 	foundCredentials := util.RandomDomainCredentials()
 
-	credentialsRepository := new(mockCredentialsRepository)
-	credentialsRepository.On("FindByUsername", mock.Anything, request.Username).Return(foundCredentials, nil)
+	repository.EXPECT().
+		FindByUsername(gomock.Any(), request.Username).
+		Return(foundCredentials, nil)
 
-	logger := logging.New(config.EnvTesting)
-	service := token.New(cfg, logger, new(mockTokenGenerator), credentialsRepository)
 	_, err := service.Generate(context.Background(), request)
 	require.Error(t, err)
 
@@ -120,14 +101,14 @@ func TestCreate_ErrorGeneratingTokens(t *testing.T) {
 		PasswordHash: hash,
 	}
 
-	credentialsRepository := new(mockCredentialsRepository)
-	credentialsRepository.On("FindByUsername", mock.Anything, request.Username).Return(foundCredentials, nil)
+	repository.EXPECT().
+		FindByUsername(gomock.Any(), request.Username).
+		Return(foundCredentials, nil)
 
-	tokenGenerator := new(mockTokenGenerator)
-	tokenGenerator.On("GenerateFor", request.Username).Return(nil, errors.New("some token generator error"))
+	tokenGenerator.EXPECT().
+		GenerateFor(request.Username).
+		Return(nil, errors.New("some token generator error"))
 
-	logger := logging.New(config.EnvTesting)
-	service := token.New(cfg, logger, tokenGenerator, credentialsRepository)
 	_, err = service.Generate(context.Background(), request)
 	require.Error(t, err)
 
@@ -147,15 +128,15 @@ func TestCreate_HappyPath(t *testing.T) {
 		PasswordHash: hash,
 	}
 
-	credentialsRepository := new(mockCredentialsRepository)
-	credentialsRepository.On("FindByUsername", mock.Anything, request.Username).Return(foundCredentials, nil)
+	repository.EXPECT().
+		FindByUsername(gomock.Any(), request.Username).
+		Return(foundCredentials, nil)
 
-	tokenGenerator := new(mockTokenGenerator)
 	generatedTokens := util.RandomJwtGeneratedTokens()
-	tokenGenerator.On("GenerateFor", request.Username).Return(generatedTokens, nil)
+	tokenGenerator.EXPECT().
+		GenerateFor(request.Username).
+		Return(generatedTokens, nil)
 
-	logger := logging.New(config.EnvTesting)
-	service := token.New(cfg, logger, tokenGenerator, credentialsRepository)
 	response, err := service.Generate(context.Background(), request)
 	require.NoError(t, err)
 
@@ -166,11 +147,6 @@ func TestCreate_HappyPath(t *testing.T) {
 func TestRefresh_InvalidRefreshToken(t *testing.T) {
 	request := util.RandomBusinessTokenRefreshRequest()
 
-	credentialsRepository := new(mockCredentialsRepository)
-	tokenGenerator := new(mockTokenGenerator)
-
-	logger := logging.New(config.EnvTesting)
-	service := token.New(cfg, logger, tokenGenerator, credentialsRepository)
 	_, err := service.Refresh(context.Background(), request)
 	require.Error(t, err)
 
@@ -191,10 +167,6 @@ func TestRefresh_ExpiredRefreshToken(t *testing.T) {
 		RefreshToken: tokens.RefreshToken,
 	}
 
-	credentialsRepository := new(mockCredentialsRepository)
-	tokenGenerator := new(mockTokenGenerator)
-
-	service := token.New(cfg, logger, tokenGenerator, credentialsRepository)
 	_, err = service.Refresh(context.Background(), request)
 	require.Error(t, err)
 
@@ -215,11 +187,10 @@ func TestRefresh_TokenGenerationError(t *testing.T) {
 		RefreshToken: tokens.RefreshToken,
 	}
 
-	credentialsRepository := new(mockCredentialsRepository)
-	tokenGenerator := new(mockTokenGenerator)
-	tokenGenerator.On("GenerateFor", username).Return(nil, errors.New("some error"))
+	tokenGenerator.EXPECT().
+		GenerateFor(username).
+		Return(nil, errors.New("some error"))
 
-	service := token.New(cfg, logger, tokenGenerator, credentialsRepository)
 	_, err = service.Refresh(context.Background(), request)
 	require.Error(t, err)
 
@@ -238,9 +209,7 @@ func TestRefresh_HappyPath(t *testing.T) {
 		RefreshToken: tokens.RefreshToken,
 	}
 
-	credentialsRepository := new(mockCredentialsRepository)
-
-	service := token.New(cfg, logger, generator, credentialsRepository)
+	service := token.New(cfg, logger, generator, repository)
 	response, err := service.Refresh(context.Background(), request)
 	require.NoError(t, err)
 
@@ -250,11 +219,6 @@ func TestRefresh_HappyPath(t *testing.T) {
 func TestValidate_InvalidAccessToken(t *testing.T) {
 	request := util.RandomBusinessTokenValidateRequest()
 
-	credentialsRepository := new(mockCredentialsRepository)
-	tokenGenerator := new(mockTokenGenerator)
-
-	logger := logging.New(config.EnvTesting)
-	service := token.New(cfg, logger, tokenGenerator, credentialsRepository)
 	_, err := service.Validate(context.Background(), request)
 	require.Error(t, err)
 
@@ -275,10 +239,6 @@ func TestValidate_ExpiredAccessToken(t *testing.T) {
 		AccessToken: tokens.AccessToken,
 	}
 
-	credentialsRepository := new(mockCredentialsRepository)
-	tokenGenerator := new(mockTokenGenerator)
-
-	service := token.New(cfg, logger, tokenGenerator, credentialsRepository)
 	_, err = service.Validate(context.Background(), request)
 	require.Error(t, err)
 
@@ -302,10 +262,10 @@ func TestValidate_HappyPath(t *testing.T) {
 	foundCredentials := util.RandomDomainCredentials()
 	foundCredentials.Username = username
 
-	credentialsRepository := new(mockCredentialsRepository)
-	credentialsRepository.On("FindByUsername", mock.Anything, username).Return(foundCredentials, nil)
+	repository.EXPECT().
+		FindByUsername(gomock.Any(), username).
+		Return(foundCredentials, nil)
 
-	service := token.New(cfg, logger, generator, credentialsRepository)
 	response, err := service.Validate(context.Background(), request)
 	require.NoError(t, err)
 

@@ -16,7 +16,7 @@ type Repository interface {
 	FindByUsername(ctx context.Context, username string) (*domain.Credentials, error)
 }
 
-type credentialsRepositoryImpl struct {
+type repositoryImpl struct {
 	db    *gorm.DB
 	cache *credentials.RedisClient
 	cfg   *config.Config
@@ -26,7 +26,7 @@ type credentialsRepositoryImpl struct {
 func New(db *gorm.DB, redisClient *redis.Client, cfg *config.Config, log *slog.Logger) Repository {
 	cacheClient := credentials.New(redisClient, cfg, log)
 
-	return &credentialsRepositoryImpl{
+	return &repositoryImpl{
 		db:    db,
 		cache: cacheClient,
 		cfg:   cfg,

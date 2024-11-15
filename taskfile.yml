@@ -15,3 +15,10 @@ tasks:
         cmds:
             - go clean -testcache
             - gotestsum --format-hide-empty-pkg --format-icons hivis -- -coverprofile=cover.out ./...
+    mockgen:
+        desc: "Generate all mocks"
+        cmds:
+            - rm -rf internal/util/mocks/*
+            - mockgen -source=internal/service/token/service.go -destination=internal/util/mocks/mock_token_service.go -package mocks -mock_names Service=TokenService,credentialsRepository=unusedCredentialsRepo1 Service
+            - mockgen -source=internal/repository/credentials/repository.go -destination=internal/util/mocks/mock_credentials_repository.go -package mocks -mock_names Repository=CredentialsRepository Repository
+            - mockgen -source=internal/jwt/jwt.go -destination=internal/util/mocks/mock_token_generator.go -package mocks -mock_names TokenGenerator=TokenGenerator TokenGenerator

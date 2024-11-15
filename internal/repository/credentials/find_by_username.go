@@ -18,7 +18,7 @@ var (
 	ErrCredentialsNotFoundByUsername  = errors.New("credentials by username not found in database")
 )
 
-func (repository *credentialsRepositoryImpl) FindByUsername(ctx context.Context, username string) (*domain.Credentials, error) {
+func (repository *repositoryImpl) FindByUsername(ctx context.Context, username string) (*domain.Credentials, error) {
 	spanContext, span := otel.Tracer(repository.cfg.Tracing.CredentialsTracerName).Start(ctx, "credentialsRepository#FindByUsername")
 	span.SetAttributes(attribute.String("username", username))
 	defer span.End()

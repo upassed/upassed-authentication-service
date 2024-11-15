@@ -18,7 +18,7 @@ var (
 	errValidatingTokenDeadlineExceeded = errors.New("token validation deadline exceeded")
 )
 
-func (service *tokenServiceImpl) Validate(ctx context.Context, request *business.TokenValidateRequest) (*business.TokenValidateResponse, error) {
+func (service *serviceImpl) Validate(ctx context.Context, request *business.TokenValidateRequest) (*business.TokenValidateResponse, error) {
 	spanContext, span := otel.Tracer(service.cfg.Tracing.TokenTracerName).Start(ctx, "tokenService#Validate")
 	defer span.End()
 

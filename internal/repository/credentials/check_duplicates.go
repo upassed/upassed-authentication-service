@@ -17,7 +17,7 @@ var (
 	errCountingDuplicatesCredentials = errors.New("error while counting duplicate credentials")
 )
 
-func (repository *credentialsRepositoryImpl) CheckDuplicatesExists(ctx context.Context, username string) (bool, error) {
+func (repository *repositoryImpl) CheckDuplicatesExists(ctx context.Context, username string) (bool, error) {
 	spanContext, span := otel.Tracer(repository.cfg.Tracing.CredentialsTracerName).Start(ctx, "credentialsRepository#CheckDuplicateExists")
 	span.SetAttributes(attribute.String("username", username))
 	defer span.End()

@@ -18,7 +18,7 @@ var (
 	ErrCreateCredentialsDeadlineExceeded = errors.New("create credentials deadline exceeded")
 )
 
-func (service *credentialsServiceImpl) Create(ctx context.Context, credentials *business.Credentials) (*business.CreateCredentialsResponse, error) {
+func (service *serviceImpl) Create(ctx context.Context, credentials *business.Credentials) (*business.CreateCredentialsResponse, error) {
 	log := logging.Wrap(service.log,
 		logging.WithOp(service.Create),
 		logging.WithCtx(ctx),

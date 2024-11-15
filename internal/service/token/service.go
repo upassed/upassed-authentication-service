@@ -24,7 +24,7 @@ type Service interface {
 	Validate(context.Context, *business.TokenValidateRequest) (*business.TokenValidateResponse, error)
 }
 
-type tokenServiceImpl struct {
+type serviceImpl struct {
 	cfg                   *config.Config
 	log                   *slog.Logger
 	tokenGenerator        jwt.TokenGenerator
@@ -36,7 +36,7 @@ type credentialsRepository interface {
 }
 
 func New(cfg *config.Config, log *slog.Logger, tokenGenerator jwt.TokenGenerator, credentialsRepository credentialsRepository) Service {
-	return &tokenServiceImpl{
+	return &serviceImpl{
 		cfg:                   cfg,
 		log:                   log,
 		tokenGenerator:        tokenGenerator,
